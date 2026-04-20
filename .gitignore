@@ -1,0 +1,49 @@
+# Ambiente
+.env
+.env.local
+.env.*.local
+
+# Backend (Java/Maven/Quarkus)
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/*.log
+
+# Quarkus
+backend/.quarkus/
+backend/**/dependency-reduced-pom.xml
+
+# Frontend (Bun/Node/Vite/TanStack)
+frontend/node_modules/
+frontend/.output/
+frontend/.nitro/
+frontend/.tanstack/
+frontend/dist/
+frontend/.vite/
+frontend/bun.lockb.*
+frontend/*.log
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+!.vscode/settings.json.example
+.fleet/
+.cursor/
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Docker
+*.pid
+
+# Logs e temporários
+*.log
+logs/
+tmp/
+
+# Documentação para IA
+.docs/
+.claude/
+CLAUDE.md
