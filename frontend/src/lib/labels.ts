@@ -24,6 +24,52 @@ export const PLAN_LABELS: Record<BusinessPlan, string> = {
 	PREMIUM: "Premium",
 };
 
+export const PLAN_HINTS: Record<BusinessPlan, string> = {
+	BASIC: "Para começar e validar seu negócio",
+	PROFESSIONAL: "Para negócios em crescimento",
+	PREMIUM: "Para operações completas e em escala",
+};
+
+export const PLAN_PRICES: Record<
+	BusinessPlan,
+	{ amount: string; period: string }
+> = {
+	BASIC: { amount: "R$ 0", period: "/mês" },
+	PROFESSIONAL: { amount: "R$ 49", period: "/mês" },
+	PREMIUM: { amount: "R$ 99", period: "/mês" },
+};
+
+export const PLAN_FEATURES: Record<BusinessPlan, string[]> = {
+	BASIC: [
+		"Até 50 agendamentos por mês",
+		"1 profissional",
+		"Suporte por e-mail",
+	],
+	PROFESSIONAL: [
+		"Agendamentos ilimitados",
+		"Até 5 profissionais",
+		"Relatórios mensais",
+		"Suporte prioritário",
+	],
+	PREMIUM: [
+		"Agendamentos ilimitados",
+		"Profissionais ilimitados",
+		"Relatórios avançados",
+		"Integrações premium",
+		"Suporte dedicado",
+	],
+};
+
+export const BUSINESS_CATEGORY_HINTS: Record<BusinessCategory, string> = {
+	BARBER_SHOP: "Cortes, barba e cuidados masculinos",
+	SALON: "Cabelo, coloração e tratamentos",
+	CLINIC: "Consultas e procedimentos clínicos",
+	AESTHETICS: "Estética facial e corporal",
+	PERSONAL_TRAINER: "Treinos e acompanhamento físico",
+	PSYCHOLOGIST: "Sessões de terapia e acompanhamento",
+	OTHER: "Outro tipo de serviço com agenda",
+};
+
 export const STATUS_LABELS: Record<AppointmentStatus, string> = {
 	SCHEDULED: "Agendado",
 	CONFIRMED: "Confirmado",

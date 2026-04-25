@@ -2,7 +2,6 @@ import { useForm } from "@tanstack/react-form";
 import { EyeIcon, EyeOffIcon, LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -23,15 +22,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-
-const formSchema = z.object({
-	email: z
-		.string()
-		.min(1, "E-mail é obrigatório")
-		.max(32, "E-mail inválido")
-		.pipe(z.email({ error: "E-mail inválido" })),
-	password: z.string().min(1, "Senha é obrigatória").max(32, "Senha inválida"),
-});
+import { loginSchema } from "@/lib/validator/auth.schema";
 
 export function LoginForm({
 	className,
@@ -44,9 +35,9 @@ export function LoginForm({
 			password: "",
 		},
 		validators: {
-			onMount: formSchema,
-			onSubmit: formSchema,
-			onChange: formSchema,
+			onMount: loginSchema,
+			onSubmit: loginSchema,
+			onChange: loginSchema,
 		},
 		onSubmit: async ({ value }) => {
 			toast.success("Debug: valores enviados", {

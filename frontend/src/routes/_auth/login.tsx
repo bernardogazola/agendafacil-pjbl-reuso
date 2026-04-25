@@ -17,7 +17,7 @@ function LoginPage() {
 			<LoginForm />
 			<p className="text-muted-foreground mt-6 text-center text-sm">
 				Não tem uma conta?{" "}
-				<Link to="/" className="text-primary font-medium hover:underline">
+				<Link to="/signup" className="text-primary font-medium hover:underline">
 					Cadastre-se
 				</Link>
 			</p>
