@@ -1,0 +1,57 @@
+package br.pucpr.agendafacil.domain.business.port;
+
+import br.pucpr.agendafacil.domain.business.Business;
+
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Repositório responsável pelo acesso aos dados de {@link Business}.
+ *
+ * <p>Esta interface funciona como uma porta de saída do domínio: as regras de
+ * negócio dependem dela para consultar e persistir estabelecimentos, sem
+ * conhecer os detalhes da tecnologia usada para armazenar os dados.</p>
+ */
+public interface BusinessRepository {
+
+    /**
+     * Busca um estabelecimento pelo id, esteja ele ativo ou não.
+     *
+     * @param id identificador do estabelecimento
+     * @return o estabelecimento encontrado ou {@code null} quando não existir
+     */
+    Business findById(Long id);
+
+    /**
+     * Busca um estabelecimento ativo pelo id.
+     *
+     * @param id identificador do estabelecimento
+     * @return o estabelecimento ativo encontrado, quando existir
+     */
+    Optional<Business> findActiveById(Long id);
+
+    /**
+     * Busca os estabelecimentos administrados por um mesmo responsável.
+     *
+     * @param ownerId identificador do responsável pelo estabelecimento
+     * @return lista de estabelecimentos pertencentes ao responsável informado
+     */
+    List<Business> findByOwnerId(Long ownerId);
+
+    /**
+     * Busca todos os estabelecimentos ativos.
+     *
+     * <p>Esse método é usado na descoberta pública de estabelecimentos pelos
+     * clientes.</p>
+     *
+     * @return lista de estabelecimentos ativos
+     */
+    List<Business> listActive();
+
+    /**
+     * Persiste um novo estabelecimento ou atualiza um estabelecimento existente.
+     *
+     * @param business estabelecimento a ser salvo
+     */
+    void persist(Business business);
+}
