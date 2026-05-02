@@ -125,54 +125,56 @@ export function CredentialsStep({
 						const descriptionId = "password-description";
 
 						return (
-							<Field data-invalid={isInvalid} className="space-y-3">
-								<FieldLabel htmlFor="password">Senha</FieldLabel>
-								<InputGroup>
-									<InputGroupInput
-										id="password"
-										name="password"
-										aria-label="Senha com toggle de visibilidade"
-										aria-describedby={hasValue ? descriptionId : undefined}
-										aria-invalid={isInvalid}
-										placeholder="Digite sua senha"
-										type={showPassword ? "text" : "password"}
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
-										autoComplete="new-password"
-									/>
-									<InputGroupAddon align="inline-end">
-										<Tooltip>
-											<TooltipTrigger
-												render={
-													<Button
-														aria-label={
-															showPassword ? "Ocultar senha" : "Mostrar senha"
-														}
-														onClick={() => setShowPassword(!showPassword)}
-														size="icon-xs"
-														variant="ghost"
-														className="cursor-pointer"
-														type="button"
-													/>
-												}
-											>
-												{showPassword ? <EyeOffIcon /> : <EyeIcon />}
-											</TooltipTrigger>
-											<TooltipContent>
-												{showPassword ? "Ocultar senha" : "Mostrar senha"}
-											</TooltipContent>
-										</Tooltip>
-									</InputGroupAddon>
-								</InputGroup>
+							<Field data-invalid={isInvalid} className="flex flex-col">
+								<div className="space-y-3">
+									<FieldLabel htmlFor="password">Senha</FieldLabel>
+									<InputGroup>
+										<InputGroupInput
+											id="password"
+											name="password"
+											aria-label="Senha com toggle de visibilidade"
+											aria-describedby={hasValue ? descriptionId : undefined}
+											aria-invalid={isInvalid}
+											placeholder="Digite sua senha"
+											type={showPassword ? "text" : "password"}
+											value={field.state.value}
+											onBlur={field.handleBlur}
+											onChange={(e) => field.handleChange(e.target.value)}
+											autoComplete="new-password"
+										/>
+										<InputGroupAddon align="inline-end">
+											<Tooltip>
+												<TooltipTrigger
+													render={
+														<Button
+															aria-label={
+																showPassword ? "Ocultar senha" : "Mostrar senha"
+															}
+															onClick={() => setShowPassword(!showPassword)}
+															size="icon-xs"
+															variant="ghost"
+															className="cursor-pointer"
+															type="button"
+														/>
+													}
+												>
+													{showPassword ? <EyeOffIcon /> : <EyeIcon />}
+												</TooltipTrigger>
+												<TooltipContent>
+													{showPassword ? "Ocultar senha" : "Mostrar senha"}
+												</TooltipContent>
+											</Tooltip>
+										</InputGroupAddon>
+									</InputGroup>
+								</div>
 
 								<div
 									aria-hidden={!hasValue}
 									className={cn(
-										"grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none",
+										"grid overflow-hidden transition-[grid-template-rows,opacity,margin-top] duration-300 ease-out motion-reduce:transition-none",
 										hasValue
-											? "grid-rows-[1fr] opacity-100"
-											: "pointer-events-none grid-rows-[0fr] opacity-0",
+											? "mt-3 grid-rows-[1fr] opacity-100"
+											: "grid-rows-[0fr] opacity-0 pointer-events-none",
 									)}
 								>
 									<div className="min-h-0 space-y-3">
