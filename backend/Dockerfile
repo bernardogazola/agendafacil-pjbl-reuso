@@ -10,11 +10,23 @@ WORKDIR /build
 # Cache deps
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
-RUN chmod +x mvnw && ./mvnw -B -ntp -q dependency:go-offline || true
+COPY agendafacil-shared/pom.xml              agendafacil-shared/pom.xml
+COPY agendafacil-domain/pom.xml              agendafacil-domain/pom.xml
+COPY agendafacil-application/pom.xml         agendafacil-application/pom.xml
+COPY agendafacil-adapter-rest/pom.xml        agendafacil-adapter-rest/pom.xml
+COPY agendafacil-adapter-persistence/pom.xml agendafacil-adapter-persistence/pom.xml
+COPY agendafacil-app/pom.xml                 agendafacil-app/pom.xml
+RUN chmod +x mvnw && ./mvnw -B -ntp -q dependency:go-offline -pl :agendafacil-app -am || true
 
-# Copia o código e package o fast-jar (sem testes, CI rodaria separado).
-COPY src/ src/
-RUN ./mvnw -B -ntp package -DskipTests -Dquarkus.package.jar.type=fast-jar
+# Copia o código e package o fast-jar
+COPY agendafacil-shared/src              agendafacil-shared/src
+COPY agendafacil-domain/src              agendafacil-domain/src
+COPY agendafacil-application/src         agendafacil-application/src
+COPY agendafacil-adapter-rest/src        agendafacil-adapter-rest/src
+COPY agendafacil-adapter-persistence/src agendafacil-adapter-persistence/src
+COPY agendafacil-app/src                 agendafacil-app/src
+RUN ./mvnw -B -ntp -pl :agendafacil-app -am package -DskipTests \
+      -Dquarkus.package.jar.type=fast-jar
 
 # Stage 2: runtime
 FROM eclipse-temurin:21-jre-alpine
@@ -26,10 +38,10 @@ RUN apk add --no-cache curl \
 WORKDIR /deployments
 
 # Estrutura do fast-jar em 4 layers para melhor cache de imagem.
-COPY --from=builder --chown=agenda:agenda /build/target/quarkus-app/lib/      ./lib/
-COPY --from=builder --chown=agenda:agenda /build/target/quarkus-app/*.jar     ./
-COPY --from=builder --chown=agenda:agenda /build/target/quarkus-app/app/      ./app/
-COPY --from=builder --chown=agenda:agenda /build/target/quarkus-app/quarkus/  ./quarkus/
+COPY --from=builder --chown=agenda:agenda /build/agendafacil-app/target/quarkus-app/lib/      ./lib/
+COPY --from=builder --chown=agenda:agenda /build/agendafacil-app/target/quarkus-app/*.jar     ./
+COPY --from=builder --chown=agenda:agenda /build/agendafacil-app/target/quarkus-app/app/      ./app/
+COPY --from=builder --chown=agenda:agenda /build/agendafacil-app/target/quarkus-app/quarkus/  ./quarkus/
 
 USER agenda
 
