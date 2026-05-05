@@ -57,6 +57,10 @@ public class Notification {
         return id;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public Appointment getAppointment() {
         return appointment;
     }
