@@ -22,7 +22,7 @@ public interface AppointmentRepository {
      * @param id identificador do agendamento
      * @return o agendamento encontrado ou {@code null} quando não existir
      */
-    Appointment findById(Long id);
+    Appointment getById(Long id);
 
     /**
      * Busca os agendamentos de um estabelecimento em uma data específica.

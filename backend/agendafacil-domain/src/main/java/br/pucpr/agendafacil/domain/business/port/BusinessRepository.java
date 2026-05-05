@@ -20,7 +20,7 @@ public interface BusinessRepository {
      * @param id identificador do estabelecimento
      * @return o estabelecimento encontrado ou {@code null} quando não existir
      */
-    Business findById(Long id);
+    Business getById(Long id);
 
     /**
      * Busca um estabelecimento ativo pelo id.

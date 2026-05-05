@@ -22,7 +22,7 @@ class PeriodReportFactoryTest {
                                                             LocalDate from, LocalDate to) {
             return List.of();
         }
-        @Override public Appointment findById(Long id) { return null; }
+        @Override public Appointment getById(Long id) { return null; }
         @Override public List<Appointment> findByBusinessAndDate(Long b, LocalDate d) { return List.of(); }
         @Override public List<Appointment> findByCustomerId(Long c) { return List.of(); }
         @Override public List<Appointment> findActiveByCustomerId(Long c) { return List.of(); }

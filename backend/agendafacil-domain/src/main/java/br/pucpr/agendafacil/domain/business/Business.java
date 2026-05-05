@@ -1,14 +1,12 @@
 package br.pucpr.agendafacil.domain.business;
 
 import br.pucpr.agendafacil.domain.identity.Administrator;
-import br.pucpr.agendafacil.domain.scheduling.Appointment;
 import br.pucpr.agendafacil.domain.scheduling.cancellation.CancellationPolicyType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -83,6 +81,10 @@ public class Business {
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getTradeName() {

@@ -62,6 +62,10 @@ public class Promotion {
         return id;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public Business getBusiness() {
         return business;
     }
