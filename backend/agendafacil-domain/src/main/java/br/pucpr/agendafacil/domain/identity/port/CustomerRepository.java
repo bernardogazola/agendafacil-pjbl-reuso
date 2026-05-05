@@ -17,7 +17,7 @@ public interface CustomerRepository {
      * @param id identificador do cliente
      * @return o cliente encontrado ou {@code null} quando não existir
      */
-    Customer findById(Long id);
+    Customer getById(Long id);
 
     /**
      * Persiste um novo cliente.

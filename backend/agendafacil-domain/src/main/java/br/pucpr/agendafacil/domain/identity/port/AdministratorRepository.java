@@ -17,7 +17,7 @@ public interface AdministratorRepository {
      * @param id identificador do administrador
      * @return o administrador encontrado ou {@code null} quando não existir
      */
-    Administrator findById(Long id);
+    Administrator getById(Long id);
 
     /**
      * Persiste um novo administrador.
