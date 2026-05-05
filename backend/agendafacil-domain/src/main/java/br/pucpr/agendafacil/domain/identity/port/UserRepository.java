@@ -5,20 +5,27 @@ import br.pucpr.agendafacil.domain.identity.User;
 import java.util.Optional;
 
 /**
- * Porta de saída - repositório de {@link User}.
+ * Repositório responsável pelo acesso aos dados de {@link User}.
+ *
+ * <p>Esta interface funciona como uma porta de saída do domínio: os serviços
+ * de aplicação dependem dela para consultar usuários, sem conhecer os detalhes
+ * da tecnologia usada para armazenar os dados.</p>
  */
 public interface UserRepository {
 
     /**
-     * Procura um usuário pelo e-mail.
-     * @param email único em {@code users.email}.
-     * @return {@link Optional} contendo o usuário se encontrado, caso contrário {@link Optional} vázio.
+     * Busca um usuário pelo e-mail.
+     *
+     * @param email e-mail usado na busca
+     * @return usuário encontrado, quando existir
      */
     Optional<User> findByEmail(String email);
 
     /**
-     * Verifica se já existe algum usuário com o e-mail informado.
-     * @param email e-mail informado.
+     * Verifica se já existe um usuário cadastrado com o e-mail informado.
+     *
+     * @param email e-mail que será verificado
+     * @return {@code true} se já existir um usuário com esse e-mail
      */
     boolean existsByEmail(String email);
 }

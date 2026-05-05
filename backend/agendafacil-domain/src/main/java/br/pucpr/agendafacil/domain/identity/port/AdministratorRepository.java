@@ -3,21 +3,26 @@ package br.pucpr.agendafacil.domain.identity.port;
 import br.pucpr.agendafacil.domain.identity.Administrator;
 
 /**
- * Porta de saída - repositório de {@link Administrator}.
+ * Repositório responsável pelo acesso aos dados de {@link Administrator}.
+ *
+ * <p>Esta interface funciona como uma porta de saída do domínio: os serviços
+ * de aplicação dependem dela para consultar e persistir administradores, sem
+ * conhecer os detalhes da tecnologia usada para armazenar os dados.</p>
  */
 public interface AdministratorRepository {
 
     /**
-     * Procura um administrador pelo id.
-     * @param id identificador único.
-     * @return {@link Administrator} ou {@code null} quando não encontrado.
+     * Busca um administrador pelo id.
+     *
+     * @param id identificador do administrador
+     * @return o administrador encontrado ou {@code null} quando não existir
      */
     Administrator findById(Long id);
 
     /**
      * Persiste um novo administrador.
-     * @param administrator novo administrador.
+     *
+     * @param administrator administrador a ser salvo
      */
     void persist(Administrator administrator);
 }
-
