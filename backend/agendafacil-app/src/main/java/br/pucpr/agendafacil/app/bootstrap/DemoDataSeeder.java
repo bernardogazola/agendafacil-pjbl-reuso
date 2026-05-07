@@ -100,6 +100,10 @@ public class DemoDataSeeder {
 
         String encoded = passwordHasher.hash(DEMO_PASSWORD);
 
+        Administrator superAdmin = new Administrator(
+                "Administrador da Plataforma", "admin@demo.com", encoded, AccessLevel.SUPER_ADMIN);
+        administratorRepository.persist(superAdmin);
+
         Business barbearia = seedBusiness(
                 "João Barbeiro", "owner1@demo.com", encoded,
                 "Barbearia do João", "contato@barbearia-joao.com.br",

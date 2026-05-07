@@ -126,11 +126,17 @@ public class AuthApplicationService {
     public LoginResponse login(LoginRequest req) {
         User user = userRepository.findByEmail(req.email())
                 .orElseThrow(() -> new UnauthorizedException("E-mail ou senha inválidos."));
+        if (!user.isActive()) {
+            throw new UnauthorizedException("Conta desativada. Procure o suporte.");
+        }
         if (!passwordHasher.verify(req.password(), user.getPassword())) {
             throw new UnauthorizedException("E-mail ou senha inválidos.");
         }
         String role = detectRole(user);
         String token = jwtService.issue(user, role);
+        if ("admin".equals(role)) {
+            return LoginResponse.admin(token, user.getId(), user.getEmail(), user.getName());
+        }
         if ("owner".equals(role)) {
             Long businessId = businessRepository.findByOwnerId(user.getId()).stream()
                     .findFirst().map(Business::getId).orElse(null);
@@ -148,7 +154,7 @@ public class AuthApplicationService {
     private String detectRole(User user) {
         return switch (user) {
             case Customer ignored -> "customer";
-            case Administrator ignored -> "owner";
+            case Administrator adm -> adm.getAccessLevel() == AccessLevel.SUPER_ADMIN ? "admin" : "owner";
             default -> throw new UnauthorizedException(
                     "Tipo de usuário não suportado para autenticação.");
         };

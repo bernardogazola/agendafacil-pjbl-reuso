@@ -9,7 +9,7 @@ public record LoginResponse(
                 examples = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...")
         String token,
 
-        @Schema(description = "Papel do usuário autenticado", examples = {"customer", "owner"})
+        @Schema(description = "Papel do usuário autenticado", examples = {"customer", "owner", "admin"})
         String role,
 
         @Schema(description = "Identificador do usuário autenticado", examples = "7", readOnly = true)
@@ -34,5 +34,9 @@ public record LoginResponse(
 
     public static LoginResponse owner(String token, Long userId, String email, String name, Long businessId) {
         return new LoginResponse(token, "owner", userId, email, name, businessId);
+    }
+
+    public static LoginResponse admin(String token, Long userId, String email, String name) {
+        return new LoginResponse(token, "admin", userId, email, name, null);
     }
 }
