@@ -10,15 +10,14 @@ import java.util.Map;
  * configuração durante a execução da aplicação, acessada por meio de
  * {@link #getInstance()}.</p>
  *
- * <p>Ela concentra propriedades simples usadas pelo sistema, como timezone,
- * formato de horário e flags de módulos opcionais. Assim, essas configurações
- * ficam em um único ponto de acesso, evitando que diferentes partes da aplicação
- * mantenham valores separados para a mesma informação.</p>
+ * <p>Ela concentra configurações simples usadas por diferentes partes do
+ * sistema, como timezone, formato de horário e flags de módulos opcionais.
+ * Os valores são carregados no início da aplicação pelo bootstrap do módulo
+ * executável.</p>
  *
- * <p>Neste projeto, a implementação clássica do Singleton foi mantida para
- * demonstrar o padrão de projeto de forma explícita. Em uma aplicação Quarkus
- * real, essa responsabilidade também poderia ser controlada pelo CDI com
- * {@code @ApplicationScoped}.</p>
+ * <p>A classe não depende de CDI, Quarkus ou MicroProfile Config. Isso mantém
+ * o módulo compartilhado simples e permite que a origem dos valores fique fora
+ * do Singleton.</p>
  */
 public class SystemConfiguration {
 
@@ -26,18 +25,10 @@ public class SystemConfiguration {
 
     private final Map<String, Object> properties = new HashMap<>();
 
-    private SystemConfiguration() {
-        properties.put("timezone", "America/Sao_Paulo");
-        properties.put("timeFormat", "HH:mm");
-        properties.put("module.reviews.enabled", false);
-        properties.put("module.promotions.enabled", false);
-        properties.put("module.notifications.enabled", true);
-    }
+    private SystemConfiguration() {}
 
     /**
      * Retorna a instância única da configuração do sistema.
-     *
-     * <p>A instância é criada apenas na primeira chamada do método.</p>
      *
      * @return instância única de {@link SystemConfiguration}
      */
@@ -76,6 +67,18 @@ public class SystemConfiguration {
      */
     public void set(String key, Object value) {
         properties.put(key, value);
+    }
+
+    /**
+     * Carrega um conjunto de configurações no mapa interno.
+     *
+     * <p>Esse método é usado pelo bootstrap da aplicação para popular o Singleton
+     * com os valores resolvidos a partir da configuração externa.</p>
+     *
+     * @param values configurações que serão adicionadas ou atualizadas
+     */
+    public void loadAll(Map<String, Object> values) {
+        properties.putAll(values);
     }
 
     /**

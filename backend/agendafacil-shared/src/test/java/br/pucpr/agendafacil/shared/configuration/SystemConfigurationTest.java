@@ -3,6 +3,8 @@ package br.pucpr.agendafacil.shared.configuration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class SystemConfigurationTest {
@@ -20,8 +22,27 @@ class SystemConfigurationTest {
     }
 
     @Test
-    void defaults_areLoaded() {
+    void freshlyConstructed_hasNoEntries() {
+        // O Singleton começa vazio. Os valores reais são carregados pelo bootstrap da aplicação.
         SystemConfiguration config = SystemConfiguration.getInstance();
+        assertNull(config.get("timezone"));
+        assertNull(config.get("timeFormat"));
+        assertFalse(config.isEnabled("module.notifications.enabled"));
+        assertFalse(config.isEnabled("module.reviews.enabled"));
+        assertFalse(config.isEnabled("module.promotions.enabled"));
+    }
+
+    @Test
+    void loadAll_populatesEntireMap() {
+        SystemConfiguration config = SystemConfiguration.getInstance();
+        config.loadAll(Map.of(
+                "timezone", "America/Sao_Paulo",
+                "timeFormat", "HH:mm",
+                "module.reviews.enabled", false,
+                "module.promotions.enabled", false,
+                "module.notifications.enabled", true
+        ));
+
         assertEquals("America/Sao_Paulo", config.get("timezone"));
         assertEquals("HH:mm", config.get("timeFormat"));
         assertTrue(config.isEnabled("module.notifications.enabled"));
