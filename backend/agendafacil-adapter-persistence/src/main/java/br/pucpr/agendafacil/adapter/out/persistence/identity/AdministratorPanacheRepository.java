@@ -9,6 +9,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 
+import java.util.List;
+
 /**
  * Repositório Panache responsável pelo acesso aos dados de {@link Administrator}.
  *
@@ -41,5 +43,22 @@ public class AdministratorPanacheRepository implements AdministratorRepository,
             persist(jpa);
         }
         administrator.setId(jpa.getId());
+    }
+
+    @Override
+    public Administrator update(Administrator administrator) {
+        AdministratorJpaEntity jpa = AdministratorMapper.toJpa(administrator, em);
+        AdministratorJpaEntity merged = em.merge(jpa);
+        return AdministratorMapper.toDomain(merged);
+    }
+
+    @Override
+    public List<Administrator> listAll(boolean activeOnly) {
+        List<AdministratorJpaEntity> entities = activeOnly
+                ? list("active = true")
+                : listAll();
+        return entities.stream()
+                .map(AdministratorMapper::toDomain)
+                .toList();
     }
 }

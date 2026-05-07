@@ -9,6 +9,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 
+import java.util.List;
+
 /**
  * Repositório Panache responsável pelo acesso aos dados de {@link Customer}.
  *
@@ -41,5 +43,23 @@ public class CustomerPanacheRepository implements CustomerRepository,
             persist(jpa);
         }
         customer.setId(jpa.getId());
+    }
+
+    @Override
+    public Customer update(Customer customer) {
+        CustomerJpaEntity jpa = CustomerMapper.toJpa(customer, em);
+        CustomerJpaEntity merged = em.merge(jpa);
+        return CustomerMapper.toDomain(merged);
+    }
+
+    @Override
+    public List<Customer> listAll(boolean activeOnly) {
+        String query = activeOnly ? "active = true" : "";
+        List<CustomerJpaEntity> entities = activeOnly
+                ? list(query)
+                : listAll();
+        return entities.stream()
+                .map(CustomerMapper::toDomain)
+                .toList();
     }
 }
