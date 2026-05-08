@@ -3,10 +3,7 @@ package br.pucpr.agendafacil.adapter.in.web.business;
 import br.pucpr.agendafacil.adapter.in.web.error.ApiError;
 import br.pucpr.agendafacil.adapter.in.web.security.AuthenticatedUser;
 import br.pucpr.agendafacil.application.business.BusinessApplicationService;
-import br.pucpr.agendafacil.application.dto.BusinessHoursDTO;
-import br.pucpr.agendafacil.application.dto.CreateOfferedServiceRequest;
-import br.pucpr.agendafacil.application.dto.OfferedServiceResponse;
-import br.pucpr.agendafacil.application.dto.UpdateBusinessHoursRequest;
+import br.pucpr.agendafacil.application.dto.*;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -25,16 +22,19 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import java.util.List;
 
 /**
- * Resource responsável pelas operações do dono sobre um estabelecimento.
+ * Resource responsável pelas operações do dono sobre seus estabelecimentos.
  *
- * <p>Permite cadastrar serviços oferecidos e atualizar os horários de
- * funcionamento. Todos os endpoints exigem autenticação com papel
- * {@code owner}.</p>
+ * <p>Permite consultar e atualizar o estabelecimento, gerenciar serviços
+ * oferecidos e editar os horários de funcionamento. Todos os endpoints exigem
+ * autenticação com papel {@code owner}.</p>
  */
 @Path("/api/v1/businesses")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@Tag(name = "Estabelecimento", description = "Gestão de serviços e horários pelo dono do estabelecimento")
+@Tag(
+        name = "Estabelecimento",
+        description = "Gestão de estabelecimentos, serviços e horários pelo dono"
+)
 public class BusinessResource {
 
     private final BusinessApplicationService businessService;
@@ -47,6 +47,96 @@ public class BusinessResource {
     }
 
     /**
+     * Busca os dados de um estabelecimento do dono autenticado.
+     *
+     * @param businessId identificador do estabelecimento
+     * @return dados do estabelecimento encontrado
+     */
+    @GET
+    @Path("/{businessId}")
+    @RolesAllowed("owner")
+    @Operation(
+            summary = "Consulta meu estabelecimento",
+            description = "Retorna os dados de um estabelecimento administrado pelo usuário autenticado."
+    )
+    @APIResponse(
+            responseCode = "200",
+            description = "Estabelecimento encontrado",
+            content = @Content(schema = @Schema(implementation = BusinessResponse.class))
+    )
+    @APIResponse(
+            responseCode = "401",
+            description = "Usuário não autenticado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "403",
+            description = "Usuário não tem permissão para acessar este estabelecimento",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "404",
+            description = "Estabelecimento não encontrado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    public BusinessResponse getBusiness(
+            @Parameter(description = "Identificador do estabelecimento", example = "10", required = true)
+            @PathParam("businessId") Long businessId) {
+        return businessService.getBusiness(authenticatedUser.id(), businessId);
+    }
+
+    /**
+     * Atualiza os dados de um estabelecimento do dono autenticado.
+     *
+     * @param businessId identificador do estabelecimento
+     * @param req novos dados do estabelecimento
+     * @return estabelecimento atualizado
+     */
+    @PUT
+    @Path("/{businessId}")
+    @RolesAllowed("owner")
+    @Operation(
+            summary = "Atualiza meu estabelecimento",
+            description = "Atualiza os dados de um estabelecimento administrado pelo usuário autenticado."
+    )
+    @APIResponse(
+            responseCode = "200",
+            description = "Estabelecimento atualizado",
+            content = @Content(schema = @Schema(implementation = BusinessResponse.class))
+    )
+    @APIResponse(
+            responseCode = "400",
+            description = "Dados inválidos na requisição",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "401",
+            description = "Usuário não autenticado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "403",
+            description = "Usuário não tem permissão para alterar este estabelecimento",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "404",
+            description = "Estabelecimento não encontrado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    public BusinessResponse updateBusiness(
+            @Parameter(description = "Identificador do estabelecimento", example = "10", required = true)
+            @PathParam("businessId") Long businessId,
+
+            @RequestBody(
+                    description = "Novos dados do estabelecimento",
+                    content = @Content(schema = @Schema(implementation = UpdateBusinessRequest.class))
+            )
+            @Valid UpdateBusinessRequest req) {
+        return businessService.updateBusiness(authenticatedUser.id(), businessId, req);
+    }
+
+    /**
      * Cadastra um novo serviço em um estabelecimento do dono autenticado.
      *
      * @param businessId identificador do estabelecimento
@@ -54,7 +144,7 @@ public class BusinessResource {
      * @return resposta HTTP 201 com os dados do serviço criado
      */
     @POST
-    @Path("/{id}/services")
+    @Path("/{businessId}/services")
     @RolesAllowed("owner")
     @Operation(
             summary = "Cadastra um novo serviço no estabelecimento",
@@ -87,7 +177,7 @@ public class BusinessResource {
     )
     public Response createService(
             @Parameter(description = "Identificador do estabelecimento", example = "10", required = true)
-            @PathParam("id") Long businessId,
+            @PathParam("businessId") Long businessId,
 
             @RequestBody(
                     description = "Dados do serviço que será cadastrado",
@@ -97,6 +187,196 @@ public class BusinessResource {
         OfferedServiceResponse body = businessService.createOfferedService(
                 authenticatedUser.id(), businessId, req);
         return Response.status(Response.Status.CREATED).entity(body).build();
+    }
+
+    /**
+     * Busca um serviço do estabelecimento do dono autenticado.
+     *
+     * @param businessId identificador do estabelecimento
+     * @param serviceId identificador do serviço
+     * @return dados do serviço encontrado
+     */
+    @GET
+    @Path("/{businessId}/services/{serviceId}")
+    @RolesAllowed("owner")
+    @Operation(
+            summary = "Consulta um serviço",
+            description = "Retorna os dados de um serviço pertencente a um estabelecimento administrado pelo usuário autenticado."
+    )
+    @APIResponse(
+            responseCode = "200",
+            description = "Serviço encontrado",
+            content = @Content(schema = @Schema(implementation = OfferedServiceResponse.class))
+    )
+    @APIResponse(
+            responseCode = "401",
+            description = "Usuário não autenticado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "403",
+            description = "Usuário não tem permissão para acessar este serviço",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "404",
+            description = "Serviço não encontrado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    public OfferedServiceResponse getService(
+            @Parameter(description = "Identificador do estabelecimento", example = "10", required = true)
+            @PathParam("businessId") Long businessId,
+
+            @Parameter(description = "Identificador do serviço", example = "5", required = true)
+            @PathParam("serviceId") Long serviceId) {
+        return businessService.getOfferedService(authenticatedUser.id(), businessId, serviceId);
+    }
+
+    /**
+     * Atualiza um serviço do estabelecimento do dono autenticado.
+     *
+     * @param businessId identificador do estabelecimento
+     * @param serviceId identificador do serviço
+     * @param req novos dados do serviço
+     * @return serviço atualizado
+     */
+    @PUT
+    @Path("/{businessId}/services/{serviceId}")
+    @RolesAllowed("owner")
+    @Operation(
+            summary = "Atualiza um serviço",
+            description = "Atualiza os dados de um serviço pertencente a um estabelecimento administrado pelo usuário autenticado."
+    )
+    @APIResponse(
+            responseCode = "200",
+            description = "Serviço atualizado",
+            content = @Content(schema = @Schema(implementation = OfferedServiceResponse.class))
+    )
+    @APIResponse(
+            responseCode = "400",
+            description = "Dados inválidos na requisição",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "401",
+            description = "Usuário não autenticado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "403",
+            description = "Usuário não tem permissão para alterar este serviço",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "404",
+            description = "Serviço não encontrado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    public OfferedServiceResponse updateService(
+            @Parameter(description = "Identificador do estabelecimento", example = "10", required = true)
+            @PathParam("businessId") Long businessId,
+
+            @Parameter(description = "Identificador do serviço", example = "5", required = true)
+            @PathParam("serviceId") Long serviceId,
+
+            @RequestBody(
+                    description = "Dados do serviço que serão atualizados",
+                    content = @Content(schema = @Schema(implementation = UpdateOfferedServiceRequest.class))
+            )
+            @Valid UpdateOfferedServiceRequest req) {
+        return businessService.updateOfferedService(
+                authenticatedUser.id(), businessId, serviceId, req);
+    }
+
+    /**
+     * Desativa um serviço do estabelecimento do dono autenticado.
+     *
+     * <p>O serviço não é removido do banco, apenas marcado como inativo para
+     * preservar o histórico relacionado.</p>
+     *
+     * @param businessId identificador do estabelecimento
+     * @param serviceId identificador do serviço
+     * @return serviço desativado
+     */
+    @DELETE
+    @Path("/{businessId}/services/{serviceId}")
+    @RolesAllowed("owner")
+    @Operation(
+            summary = "Desativa um serviço",
+            description = "Marca o serviço como inativo, mantendo seu histórico na plataforma."
+    )
+    @APIResponse(
+            responseCode = "200",
+            description = "Serviço desativado",
+            content = @Content(schema = @Schema(implementation = OfferedServiceResponse.class))
+    )
+    @APIResponse(
+            responseCode = "401",
+            description = "Usuário não autenticado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "403",
+            description = "Usuário não tem permissão para alterar este serviço",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "404",
+            description = "Serviço não encontrado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    public OfferedServiceResponse deactivateService(
+            @Parameter(description = "Identificador do estabelecimento", example = "10", required = true)
+            @PathParam("businessId") Long businessId,
+
+            @Parameter(description = "Identificador do serviço", example = "5", required = true)
+            @PathParam("serviceId") Long serviceId) {
+        return businessService.deactivateOfferedService(
+                authenticatedUser.id(), businessId, serviceId);
+    }
+
+    /**
+     * Reativa um serviço do estabelecimento do dono autenticado.
+     *
+     * @param businessId identificador do estabelecimento
+     * @param serviceId identificador do serviço
+     * @return serviço reativado
+     */
+    @POST
+    @Path("/{businessId}/services/{serviceId}/reactivate")
+    @RolesAllowed("owner")
+    @Operation(
+            summary = "Reativa um serviço",
+            description = "Marca novamente o serviço como ativo e disponível para uso."
+    )
+    @APIResponse(
+            responseCode = "200",
+            description = "Serviço reativado",
+            content = @Content(schema = @Schema(implementation = OfferedServiceResponse.class))
+    )
+    @APIResponse(
+            responseCode = "401",
+            description = "Usuário não autenticado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "403",
+            description = "Usuário não tem permissão para alterar este serviço",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "404",
+            description = "Serviço não encontrado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    public OfferedServiceResponse reactivateService(
+            @Parameter(description = "Identificador do estabelecimento", example = "10", required = true)
+            @PathParam("businessId") Long businessId,
+
+            @Parameter(description = "Identificador do serviço", example = "5", required = true)
+            @PathParam("serviceId") Long serviceId) {
+        return businessService.reactivateOfferedService(
+                authenticatedUser.id(), businessId, serviceId);
     }
 
     /**
@@ -110,7 +390,7 @@ public class BusinessResource {
      * @return lista atualizada de horários de funcionamento
      */
     @PUT
-    @Path("/{id}/hours")
+    @Path("/{businessId}/hours")
     @RolesAllowed("owner")
     @Operation(
             summary = "Atualiza os horários de funcionamento do estabelecimento",
@@ -146,7 +426,7 @@ public class BusinessResource {
     )
     public List<BusinessHoursDTO> updateHours(
             @Parameter(description = "Identificador do estabelecimento", example = "10", required = true)
-            @PathParam("id") Long businessId,
+            @PathParam("businessId") Long businessId,
 
             @RequestBody(
                     description = "Horários de funcionamento que serão aplicados",

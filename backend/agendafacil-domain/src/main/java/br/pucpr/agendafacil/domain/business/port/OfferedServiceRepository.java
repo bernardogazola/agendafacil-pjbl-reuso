@@ -16,6 +16,14 @@ import java.util.Optional;
 public interface OfferedServiceRepository {
 
     /**
+     * Busca um serviço pelo id, esteja ele ativo ou não.
+     *
+     * @param id identificador do serviço
+     * @return o serviço encontrado ou {@code null} quando não existir
+     */
+    OfferedService getById(Long id);
+
+    /**
      * Busca um serviço ativo pelo id.
      *
      * @param id identificador do serviço
@@ -48,4 +56,15 @@ public interface OfferedServiceRepository {
      * @param service serviço a ser salvo
      */
     void persist(OfferedService service);
+
+    /**
+     * Atualiza um serviço existente.
+     *
+     * <p>A implementação deve localizar o registro pelo id do serviço informado e
+     * aplicar os novos dados.</p>
+     *
+     * @param service serviço com os dados atualizados
+     * @return serviço atualizado
+     */
+    OfferedService update(OfferedService service);
 }

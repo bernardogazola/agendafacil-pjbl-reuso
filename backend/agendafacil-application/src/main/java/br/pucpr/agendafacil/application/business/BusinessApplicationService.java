@@ -1,10 +1,8 @@
 package br.pucpr.agendafacil.application.business;
 
-import br.pucpr.agendafacil.application.dto.BusinessHoursDTO;
-import br.pucpr.agendafacil.application.dto.CreateOfferedServiceRequest;
-import br.pucpr.agendafacil.application.dto.OfferedServiceResponse;
-import br.pucpr.agendafacil.application.dto.UpdateBusinessHoursRequest;
+import br.pucpr.agendafacil.application.dto.*;
 import br.pucpr.agendafacil.application.mapper.BusinessHoursMapper;
+import br.pucpr.agendafacil.application.mapper.BusinessMapper;
 import br.pucpr.agendafacil.application.mapper.OfferedServiceMapper;
 import br.pucpr.agendafacil.domain.business.Business;
 import br.pucpr.agendafacil.domain.business.BusinessHours;
@@ -24,12 +22,12 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Serviço de aplicação responsável pelas operações do dono sobre seus
- * estabelecimentos.
+ * Serviço de aplicação responsável pela gestão de estabelecimentos, serviços e
+ * horários de funcionamento.
  *
- * <p>Centraliza casos de uso como cadastro de serviços, atualização dos horários
- * de funcionamento e criação dos horários padrão de um estabelecimento recém
- * cadastrado.</p>
+ * <p>Centraliza casos de uso usados pelo dono do estabelecimento e pela visão
+ * administrativa da plataforma, como consulta, atualização, ativação,
+ * desativação, cadastro de serviços e edição de horários.</p>
  */
 @ApplicationScoped
 public class BusinessApplicationService {
@@ -37,6 +35,7 @@ public class BusinessApplicationService {
     private final BusinessRepository businessRepository;
     private final OfferedServiceRepository offeredServiceRepository;
     private final BusinessHoursRepository businessHoursRepository;
+    private final BusinessMapper businessMapper;
     private final OfferedServiceMapper offeredServiceMapper;
     private final BusinessHoursMapper businessHoursMapper;
 
@@ -44,13 +43,128 @@ public class BusinessApplicationService {
     public BusinessApplicationService(BusinessRepository businessRepository,
                                       OfferedServiceRepository offeredServiceRepository,
                                       BusinessHoursRepository businessHoursRepository,
+                                      BusinessMapper businessMapper,
                                       OfferedServiceMapper offeredServiceMapper,
                                       BusinessHoursMapper businessHoursMapper) {
         this.businessRepository = businessRepository;
         this.offeredServiceRepository = offeredServiceRepository;
         this.businessHoursRepository = businessHoursRepository;
+        this.businessMapper = businessMapper;
         this.offeredServiceMapper = offeredServiceMapper;
         this.businessHoursMapper = businessHoursMapper;
+    }
+
+    /**
+     * Busca os dados de um estabelecimento pertencente ao dono autenticado.
+     *
+     * @param ownerId identificador do dono autenticado
+     * @param businessId identificador do estabelecimento
+     * @return dados do estabelecimento encontrado
+     * @throws ForbiddenException quando o estabelecimento não pertence ao dono
+     * @throws NotFoundException quando o estabelecimento não existir
+     */
+    public BusinessResponse getBusiness(Long ownerId, Long businessId) {
+        Business business = loadBusinessOrThrow(businessId);
+        assertOwnership(ownerId, business);
+        return businessMapper.toResponse(business);
+    }
+
+    /**
+     * Busca os dados de um estabelecimento pela visão administrativa.
+     *
+     * @param businessId identificador do estabelecimento
+     * @return dados do estabelecimento encontrado
+     * @throws NotFoundException quando o estabelecimento não existir
+     */
+    public BusinessResponse getBusinessAdmin(Long businessId) {
+        return businessMapper.toResponse(loadBusinessOrThrow(businessId));
+    }
+
+    /**
+     * Lista os estabelecimentos cadastrados na plataforma.
+     *
+     * @param activeOnly indica se a listagem deve retornar apenas estabelecimentos ativos
+     * @return lista de estabelecimentos encontrados
+     */
+    public List<BusinessResponse> listAdminAll(boolean activeOnly) {
+        return businessRepository.listAllAdmin(activeOnly).stream()
+                .map(businessMapper::toResponse)
+                .toList();
+    }
+
+    /**
+     * Atualiza os dados de um estabelecimento pertencente ao dono autenticado.
+     *
+     * @param ownerId identificador do dono autenticado
+     * @param businessId identificador do estabelecimento
+     * @param req novos dados do estabelecimento
+     * @return estabelecimento atualizado
+     * @throws ForbiddenException quando o estabelecimento não pertence ao dono
+     * @throws NotFoundException quando o estabelecimento não existir
+     */
+    @Transactional
+    public BusinessResponse updateBusiness(Long ownerId, Long businessId,
+                                           UpdateBusinessRequest req) {
+        Business business = loadBusinessOrThrow(businessId);
+        assertOwnership(ownerId, business);
+        applyBusinessUpdate(business, req);
+        Business saved = businessRepository.update(business);
+        return businessMapper.toResponse(saved);
+    }
+
+    /**
+     * Atualiza os dados de um estabelecimento pela visão administrativa.
+     *
+     * @param businessId identificador do estabelecimento
+     * @param req novos dados do estabelecimento
+     * @return estabelecimento atualizado
+     * @throws NotFoundException quando o estabelecimento não existir
+     */
+    @Transactional
+    public BusinessResponse updateBusinessAdmin(Long businessId, UpdateBusinessRequest req) {
+        Business business = loadBusinessOrThrow(businessId);
+        applyBusinessUpdate(business, req);
+        Business saved = businessRepository.update(business);
+        return businessMapper.toResponse(saved);
+    }
+
+    /**
+     * Desativa um estabelecimento pela visão administrativa.
+     *
+     * @param businessId identificador do estabelecimento
+     * @return estabelecimento desativado
+     * @throws NotFoundException quando o estabelecimento não existir
+     */
+    @Transactional
+    public BusinessResponse deactivateBusinessAdmin(Long businessId) {
+        Business business = loadBusinessOrThrow(businessId);
+        business.deactivate();
+        Business saved = businessRepository.update(business);
+        return businessMapper.toResponse(saved);
+    }
+
+    /**
+     * Reativa um estabelecimento pela visão administrativa.
+     *
+     * @param businessId identificador do estabelecimento
+     * @return estabelecimento reativado
+     * @throws NotFoundException quando o estabelecimento não existir
+     */
+    @Transactional
+    public BusinessResponse reactivateBusinessAdmin(Long businessId) {
+        Business business = loadBusinessOrThrow(businessId);
+        business.activate();
+        Business saved = businessRepository.update(business);
+        return businessMapper.toResponse(saved);
+    }
+
+    private void applyBusinessUpdate(Business business, UpdateBusinessRequest req) {
+        business.setTradeName(req.tradeName());
+        business.setEmail(req.email());
+        business.setPhone(req.phone());
+        business.setCategory(req.category());
+        business.setPlan(req.plan());
+        business.setCancellationPolicyType(req.cancellationPolicyType());
     }
 
     /**
@@ -72,6 +186,105 @@ public class BusinessApplicationService {
         OfferedService service = offeredServiceMapper.toEntity(req, business);
         offeredServiceRepository.persist(service);
         return offeredServiceMapper.toResponse(service);
+    }
+
+    /**
+     * Busca um serviço de um estabelecimento pertencente ao dono autenticado.
+     *
+     * @param ownerId identificador do dono autenticado
+     * @param businessId identificador do estabelecimento
+     * @param serviceId identificador do serviço
+     * @return dados do serviço encontrado
+     * @throws ForbiddenException quando o estabelecimento não pertence ao dono
+     * @throws NotFoundException quando o serviço não existir no estabelecimento
+     */
+    public OfferedServiceResponse getOfferedService(Long ownerId, Long businessId, Long serviceId) {
+        OfferedService service = loadServiceOrThrow(serviceId);
+        assertServiceOwnership(ownerId, businessId, service);
+        return offeredServiceMapper.toResponse(service);
+    }
+
+    /**
+     * Atualiza um serviço de um estabelecimento pertencente ao dono autenticado.
+     *
+     * @param ownerId identificador do dono autenticado
+     * @param businessId identificador do estabelecimento
+     * @param serviceId identificador do serviço
+     * @param req novos dados do serviço
+     * @return serviço atualizado
+     * @throws ForbiddenException quando o estabelecimento não pertence ao dono
+     * @throws NotFoundException quando o serviço não existir no estabelecimento
+     */
+    @Transactional
+    public OfferedServiceResponse updateOfferedService(Long ownerId, Long businessId, Long serviceId,
+                                                       UpdateOfferedServiceRequest req) {
+        OfferedService service = loadServiceOrThrow(serviceId);
+        assertServiceOwnership(ownerId, businessId, service);
+        service.setName(req.name());
+        service.setBasePrice(req.basePrice());
+        service.setDurationMinutes(req.durationMinutes());
+        service.setDescription(req.description());
+        service.setPricingPolicyType(req.pricingPolicyType());
+        OfferedService saved = offeredServiceRepository.update(service);
+        return offeredServiceMapper.toResponse(saved);
+    }
+
+    /**
+     * Desativa um serviço de um estabelecimento pertencente ao dono autenticado.
+     *
+     * <p>O serviço permanece cadastrado, mas deixa de aparecer na descoberta
+     * pública e fica indisponível para novos agendamentos.</p>
+     *
+     * @param ownerId identificador do dono autenticado
+     * @param businessId identificador do estabelecimento
+     * @param serviceId identificador do serviço
+     * @return serviço desativado
+     * @throws ForbiddenException quando o estabelecimento não pertence ao dono
+     * @throws NotFoundException quando o serviço não existir no estabelecimento
+     */
+    @Transactional
+    public OfferedServiceResponse deactivateOfferedService(Long ownerId, Long businessId, Long serviceId) {
+        OfferedService service = loadServiceOrThrow(serviceId);
+        assertServiceOwnership(ownerId, businessId, service);
+        service.deactivate();
+        OfferedService saved = offeredServiceRepository.update(service);
+        return offeredServiceMapper.toResponse(saved);
+    }
+
+    /**
+     * Reativa um serviço de um estabelecimento pertencente ao dono autenticado.
+     *
+     * @param ownerId identificador do dono autenticado
+     * @param businessId identificador do estabelecimento
+     * @param serviceId identificador do serviço
+     * @return serviço reativado
+     * @throws ForbiddenException quando o estabelecimento não pertence ao dono
+     * @throws NotFoundException quando o serviço não existir no estabelecimento
+     */
+    @Transactional
+    public OfferedServiceResponse reactivateOfferedService(Long ownerId, Long businessId, Long serviceId) {
+        OfferedService service = loadServiceOrThrow(serviceId);
+        assertServiceOwnership(ownerId, businessId, service);
+        service.activate();
+        OfferedService saved = offeredServiceRepository.update(service);
+        return offeredServiceMapper.toResponse(saved);
+    }
+
+    private OfferedService loadServiceOrThrow(Long serviceId) {
+        OfferedService service = offeredServiceRepository.getById(serviceId);
+        if (service == null) {
+            throw new NotFoundException("Serviço não encontrado.");
+        }
+        return service;
+    }
+
+    private void assertServiceOwnership(Long ownerId, Long businessId, OfferedService service) {
+        if (service.getBusiness() == null
+                || !Objects.equals(service.getBusiness().getId(), businessId)) {
+            throw new NotFoundException("Serviço não encontrado neste estabelecimento.");
+        }
+        Business business = loadBusinessOrThrow(businessId);
+        assertOwnership(ownerId, business);
     }
 
     /**
@@ -134,6 +347,14 @@ public class BusinessApplicationService {
             if (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY) bh.deactivate();
             businessHoursRepository.persist(bh);
         }
+    }
+
+    private Business loadBusinessOrThrow(Long businessId) {
+        Business business = businessRepository.getById(businessId);
+        if (business == null) {
+            throw new NotFoundException("Estabelecimento não encontrado.");
+        }
+        return business;
     }
 
     /**

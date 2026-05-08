@@ -31,6 +31,13 @@ public class OfferedServicePanacheRepository implements OfferedServiceRepository
     }
 
     @Override
+    public OfferedService getById(Long id) {
+        return findByIdOptional(id)
+                .map(OfferedServiceMapper::toDomain)
+                .orElse(null);
+    }
+
+    @Override
     public Optional<OfferedService> findActiveById(Long id) {
         return find("id = ?1 and active = true", id)
                 .firstResultOptional()
@@ -58,5 +65,12 @@ public class OfferedServicePanacheRepository implements OfferedServiceRepository
             persist(jpa);
         }
         service.setId(jpa.getId());
+    }
+
+    @Override
+    public OfferedService update(OfferedService service) {
+        OfferedServiceJpaEntity jpa = OfferedServiceMapper.toJpa(service, em);
+        OfferedServiceJpaEntity merged = em.merge(jpa);
+        return OfferedServiceMapper.toDomain(merged);
     }
 }

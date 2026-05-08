@@ -49,9 +49,31 @@ public interface BusinessRepository {
     List<Business> listActive();
 
     /**
+     * Lista os estabelecimentos cadastrados na plataforma para uso administrativo.
+     *
+     * <p>Quando {@code activeOnly} for {@code true}, retorna apenas
+     * estabelecimentos ativos.</p>
+     *
+     * @param activeOnly indica se a busca deve considerar apenas estabelecimentos ativos
+     * @return lista de estabelecimentos encontrados
+     */
+    List<Business> listAllAdmin(boolean activeOnly);
+
+    /**
      * Persiste um novo estabelecimento ou atualiza um estabelecimento existente.
      *
      * @param business estabelecimento a ser salvo
      */
     void persist(Business business);
+
+    /**
+     * Atualiza um estabelecimento existente.
+     *
+     * <p>A implementação deve localizar o registro pelo id do estabelecimento
+     * informado e aplicar os novos dados.</p>
+     *
+     * @param business estabelecimento com os dados atualizados
+     * @return estabelecimento atualizado
+     */
+    Business update(Business business);
 }

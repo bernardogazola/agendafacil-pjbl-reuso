@@ -59,11 +59,28 @@ public class BusinessPanacheRepository implements BusinessRepository,
     }
 
     @Override
+    public List<Business> listAllAdmin(boolean activeOnly) {
+        List<BusinessJpaEntity> entities = activeOnly
+                ? list("active", true)
+                : listAll();
+        return entities.stream()
+                .map(BusinessMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public void persist(Business business) {
         BusinessJpaEntity jpa = BusinessMapper.toJpa(business, em);
         if (jpa.getId() == null) {
             persist(jpa);
         }
         business.setId(jpa.getId());
+    }
+
+    @Override
+    public Business update(Business business) {
+        BusinessJpaEntity jpa = BusinessMapper.toJpa(business, em);
+        BusinessJpaEntity merged = em.merge(jpa);
+        return BusinessMapper.toDomain(merged);
     }
 }
