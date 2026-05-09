@@ -33,7 +33,9 @@ export type DayOfWeek =
 	| "SATURDAY"
 	| "SUNDAY";
 
-export type UserRole = "customer" | "owner";
+export type UserRole = "customer" | "owner" | "admin";
+
+export type AccessLevel = "SUPER_ADMIN" | "BUSINESS_ADMIN";
 
 // Auth
 
@@ -108,8 +110,39 @@ export interface BusinessHoursDTO {
 	active: boolean;
 }
 
+export interface BusinessHoursResponse {
+	id: number;
+	dayOfWeek: DayOfWeek;
+	startTime: string;
+	endTime: string;
+	active: boolean;
+}
+
+export interface CreateBusinessHoursRequest {
+	dayOfWeek: DayOfWeek;
+	startTime: string;
+	endTime: string;
+	active?: boolean | null;
+}
+
+export interface UpdateBusinessHoursEntryRequest {
+	startTime: string;
+	endTime: string;
+	active: boolean;
+}
+
 export interface UpdateBusinessHoursRequest {
 	hours: BusinessHoursDTO[];
+}
+
+export type AppointmentStatusAction = "CONFIRM" | "COMPLETE" | "MARK_NO_SHOW";
+
+export interface UpdateAppointmentStatusRequest {
+	action: AppointmentStatusAction;
+}
+
+export interface RescheduleAppointmentRequest {
+	newScheduledAt: string;
 }
 
 // Appointment/Schedule
@@ -159,6 +192,131 @@ export interface ReportResponse {
 	appointmentCount: number;
 	totalRevenue: number;
 	formatted: string;
+}
+
+// Admin: Business
+
+export interface UpdateBusinessRequest {
+	tradeName: string;
+	email: string;
+	phone?: string | null;
+	category: BusinessCategory;
+	plan: BusinessPlan;
+	cancellationPolicyType: CancellationPolicyType;
+}
+
+export interface UpdateOfferedServiceRequest {
+	name: string;
+	basePrice: number;
+	durationMinutes: number;
+	description?: string | null;
+	pricingPolicyType: PricingPolicyType;
+}
+
+// Admin: Customer
+
+export interface CustomerResponse {
+	id: number;
+	name: string;
+	email: string;
+	phone: string | null;
+	birthDate: string | null;
+	notificationPreferences: NotificationChannel[];
+	active: boolean;
+}
+
+export interface UpdateCustomerRequest {
+	name: string;
+	phone?: string | null;
+	birthDate?: string | null;
+	notificationPreferences?: NotificationChannel[] | null;
+}
+
+// Admin: Administrator
+
+export interface AdministratorResponse {
+	id: number;
+	name: string;
+	email: string;
+	phone: string | null;
+	accessLevel: AccessLevel;
+	active: boolean;
+}
+
+export interface CreateAdministratorRequest {
+	name: string;
+	email: string;
+	password: string;
+	phone?: string | null;
+	accessLevel: AccessLevel;
+}
+
+export interface UpdateAdministratorRequest {
+	name: string;
+	phone?: string | null;
+	accessLevel: AccessLevel;
+	newPassword?: string | null;
+}
+
+// Promotions
+
+export interface PromotionResponse {
+	id: number;
+	businessId: number;
+	name: string;
+	description: string | null;
+	discountPercentage: number | null;
+	discountAmount: number | null;
+	validFrom: string;
+	validTo: string;
+	eligibleServiceIds: number[];
+	active: boolean;
+}
+
+export interface CreatePromotionRequest {
+	name: string;
+	description?: string | null;
+	discountPercentage?: number | null;
+	discountAmount?: number | null;
+	validFrom: string;
+	validTo: string;
+	eligibleServiceIds?: number[] | null;
+}
+
+export interface UpdatePromotionRequest {
+	name: string;
+	description?: string | null;
+	discountPercentage?: number | null;
+	discountAmount?: number | null;
+	validFrom: string;
+	validTo: string;
+	eligibleServiceIds?: number[] | null;
+	active: boolean;
+}
+
+// Reviews
+
+export interface ReviewResponse {
+	id: number;
+	appointmentId: number;
+	customerId: number;
+	customerName: string;
+	businessId: number;
+	businessName: string;
+	serviceId: number;
+	serviceName: string;
+	rating: number;
+	comment: string | null;
+}
+
+export interface CreateReviewRequest {
+	rating: number;
+	comment?: string | null;
+}
+
+export interface UpdateReviewRequest {
+	rating: number;
+	comment?: string | null;
 }
 
 // Erros
