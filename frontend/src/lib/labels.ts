@@ -1,9 +1,11 @@
 import type {
+	AccessLevel,
 	AppointmentStatus,
 	BusinessCategory,
 	BusinessPlan,
 	CancellationPolicyType,
 	DayOfWeek,
+	NotificationChannel,
 	PricingPolicyType,
 	ReportPeriod,
 } from "./types";
@@ -124,3 +126,15 @@ export const DAY_ORDER: DayOfWeek[] = [
 	"SATURDAY",
 	"SUNDAY",
 ];
+
+export const ACCESS_LEVEL_LABELS: Record<AccessLevel, string> = {
+	SUPER_ADMIN: "Super-administrador",
+	BUSINESS_ADMIN: "Dono de estabelecimento",
+};
+
+export const NOTIFICATION_CHANNEL_LABELS: Record<NotificationChannel, string> =
+	{
+		EMAIL: "E-mail",
+		SMS: "SMS",
+		WHATSAPP: "WhatsApp",
+	};
