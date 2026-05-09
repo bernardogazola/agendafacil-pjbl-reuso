@@ -93,6 +93,13 @@ public class AppointmentPanacheRepository implements AppointmentRepository,
     }
 
     @Override
+    public Optional<Appointment> findByIdAndOwnerId(Long appointmentId, Long ownerId) {
+        return find("id = ?1 and business.owner.id = ?2", appointmentId, ownerId)
+                .firstResultOptional()
+                .map(AppointmentMapper::toDomain);
+    }
+
+    @Override
     public List<Appointment> findActiveAfter(LocalDateTime cutoff) {
         return list("status in ?1 and scheduledAt > ?2",
                 List.of(AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED),
@@ -109,5 +116,12 @@ public class AppointmentPanacheRepository implements AppointmentRepository,
             persist(jpa);
         }
         appointment.setId(jpa.getId());
+    }
+
+    @Override
+    public Appointment update(Appointment appointment) {
+        AppointmentJpaEntity jpa = AppointmentMapper.toJpa(appointment, em);
+        AppointmentJpaEntity merged = em.merge(jpa);
+        return AppointmentMapper.toDomain(merged);
     }
 }

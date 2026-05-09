@@ -2,9 +2,7 @@ package br.pucpr.agendafacil.adapter.in.web.scheduling;
 
 import br.pucpr.agendafacil.adapter.in.web.error.ApiError;
 import br.pucpr.agendafacil.adapter.in.web.security.AuthenticatedUser;
-import br.pucpr.agendafacil.application.dto.AppointmentResponse;
-import br.pucpr.agendafacil.application.dto.BookAppointmentRequest;
-import br.pucpr.agendafacil.application.dto.CancellationResponse;
+import br.pucpr.agendafacil.application.dto.*;
 import br.pucpr.agendafacil.application.scheduling.AppointmentApplicationService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -24,10 +22,11 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import java.util.List;
 
 /**
- * Resource responsável pelos agendamentos do cliente autenticado.
+ * Resource responsável pelos endpoints de agendamento.
  *
- * <p>Permite criar agendamentos, cancelar uma reserva existente e consultar os
- * próprios agendamentos do cliente.</p>
+ * <p>Permite que clientes criem, cancelem e consultem seus agendamentos. Também
+ * expõe operações do dono do estabelecimento, como alteração de status e
+ * reagendamento.</p>
  */
 @Path("/api/v1/appointments")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -104,11 +103,11 @@ public class AppointmentResource {
     /**
      * Cancela um agendamento do cliente autenticado.
      *
-     * @param id identificador do agendamento
+     * @param appointmentId identificador do agendamento
      * @return resultado do cancelamento
      */
     @DELETE
-    @Path("/{id}")
+    @Path("/{appointmentId}")
     @RolesAllowed("customer")
     @Operation(
             summary = "Cancela um agendamento",
@@ -146,8 +145,8 @@ public class AppointmentResource {
     )
     public CancellationResponse cancel(
             @Parameter(description = "Identificador do agendamento", example = "42", required = true)
-            @PathParam("id") Long id) {
-        return appointmentService.cancelAppointment(id, authenticatedUser.id());
+            @PathParam("appointmentId") Long appointmentId) {
+        return appointmentService.cancelAppointment(appointmentId, authenticatedUser.id());
     }
 
     /**
@@ -191,5 +190,122 @@ public class AppointmentResource {
             @DefaultValue("false")
             boolean includeAll) {
         return appointmentService.listForCustomer(authenticatedUser.id(), includeAll);
+    }
+
+    /**
+     * Altera o status de um agendamento pela visão do dono do estabelecimento.
+     *
+     * @param appointmentId identificador do agendamento
+     * @param req ação de mudança de status
+     * @return agendamento atualizado
+     */
+    @PATCH
+    @Path("/{appointmentId}/status")
+    @RolesAllowed("owner")
+    @Operation(
+            summary = "Altera o status de um agendamento",
+            description = "Permite que o dono do estabelecimento confirme, conclua ou marque um agendamento como não comparecido."
+    )
+    @APIResponse(
+            responseCode = "200",
+            description = "Status atualizado",
+            content = @Content(schema = @Schema(implementation = AppointmentResponse.class))
+    )
+    @APIResponse(
+            responseCode = "400",
+            description = "Dados inválidos na requisição",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "401",
+            description = "Usuário não autenticado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "403",
+            description = "Usuário não tem permissão para alterar este agendamento",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "404",
+            description = "Agendamento não encontrado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "422",
+            description = "Transição de status não permitida",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    public AppointmentResponse changeStatus(
+            @Parameter(description = "Identificador do agendamento", example = "42", required = true)
+            @PathParam("appointmentId") Long appointmentId,
+
+            @RequestBody(
+                    description = "Ação de mudança de status que será aplicada",
+                    content = @Content(schema = @Schema(implementation = UpdateAppointmentStatusRequest.class))
+            )
+            @Valid UpdateAppointmentStatusRequest req) {
+        return appointmentService.changeStatus(appointmentId, authenticatedUser.id(), req);
+    }
+
+    /**
+     * Reagenda um agendamento ativo pela visão do dono do estabelecimento.
+     *
+     * @param appointmentId identificador do agendamento
+     * @param req nova data e hora do agendamento
+     * @return agendamento reagendado
+     */
+    @PATCH
+    @Path("/{appointmentId}/schedule")
+    @RolesAllowed("owner")
+    @Operation(
+            summary = "Reagenda um agendamento",
+            description = "Atualiza a data e hora de um agendamento ativo, verificando se o novo horário está disponível."
+    )
+    @APIResponse(
+            responseCode = "200",
+            description = "Agendamento reagendado",
+            content = @Content(schema = @Schema(implementation = AppointmentResponse.class))
+    )
+    @APIResponse(
+            responseCode = "400",
+            description = "Dados inválidos na requisição",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "401",
+            description = "Usuário não autenticado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "403",
+            description = "Usuário não tem permissão para reagendar este agendamento",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "404",
+            description = "Agendamento não encontrado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "409",
+            description = "Novo horário indisponível para agendamento",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "422",
+            description = "Agendamento não está em estado ativo",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    public AppointmentResponse reschedule(
+            @Parameter(description = "Identificador do agendamento", example = "42", required = true)
+            @PathParam("appointmentId") Long appointmentId,
+
+            @RequestBody(
+                    description = "Nova data e hora do agendamento",
+                    content = @Content(schema = @Schema(implementation = RescheduleAppointmentRequest.class))
+            )
+            @Valid RescheduleAppointmentRequest req) {
+        return appointmentService.reschedule(appointmentId, authenticatedUser.id(), req);
     }
 }

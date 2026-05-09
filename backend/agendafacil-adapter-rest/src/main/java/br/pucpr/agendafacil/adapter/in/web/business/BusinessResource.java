@@ -380,7 +380,253 @@ public class BusinessResource {
     }
 
     /**
-     * Atualiza os horários de funcionamento de um estabelecimento.
+     * Lista as janelas de funcionamento de um estabelecimento do dono autenticado.
+     *
+     * @param businessId identificador do estabelecimento
+     * @return lista de janelas de funcionamento
+     */
+    @GET
+    @Path("/{businessId}/hours")
+    @RolesAllowed("owner")
+    @Operation(
+            summary = "Lista horários de funcionamento",
+            description = "Retorna as janelas de funcionamento de um estabelecimento administrado pelo usuário autenticado."
+    )
+    @APIResponse(
+            responseCode = "200",
+            description = "Lista de janelas de funcionamento",
+            content = @Content(schema = @Schema(
+                    type = SchemaType.ARRAY,
+                    implementation = BusinessHoursResponse.class
+            ))
+    )
+    @APIResponse(
+            responseCode = "401",
+            description = "Usuário não autenticado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "403",
+            description = "Usuário não tem permissão para acessar este estabelecimento",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "404",
+            description = "Estabelecimento não encontrado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    public List<BusinessHoursResponse> listHours(
+            @Parameter(description = "Identificador do estabelecimento", example = "10", required = true)
+            @PathParam("businessId") Long businessId) {
+        return businessService.listHours(authenticatedUser.id(), businessId);
+    }
+
+    /**
+     * Busca uma janela de funcionamento do estabelecimento do dono autenticado.
+     *
+     * @param businessId identificador do estabelecimento
+     * @param hourId identificador da janela de funcionamento
+     * @return dados da janela de funcionamento
+     */
+    @GET
+    @Path("/{businessId}/hours/{hourId}")
+    @RolesAllowed("owner")
+    @Operation(
+            summary = "Consulta uma janela de funcionamento",
+            description = "Retorna os dados de uma janela de funcionamento pertencente a um estabelecimento administrado pelo usuário autenticado."
+    )
+    @APIResponse(
+            responseCode = "200",
+            description = "Janela de funcionamento encontrada",
+            content = @Content(schema = @Schema(implementation = BusinessHoursResponse.class))
+    )
+    @APIResponse(
+            responseCode = "401",
+            description = "Usuário não autenticado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "403",
+            description = "Usuário não tem permissão para acessar esta janela",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "404",
+            description = "Janela de funcionamento não encontrada",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    public BusinessHoursResponse getHour(
+            @Parameter(description = "Identificador do estabelecimento", example = "10", required = true)
+            @PathParam("businessId") Long businessId,
+
+            @Parameter(description = "Identificador da janela de funcionamento", example = "3", required = true)
+            @PathParam("hourId") Long hourId) {
+        return businessService.getHourById(authenticatedUser.id(), businessId, hourId);
+    }
+
+    /**
+     * Cria uma nova janela de funcionamento para um estabelecimento.
+     *
+     * @param businessId identificador do estabelecimento
+     * @param req dados da janela de funcionamento
+     * @return resposta HTTP 201 com a janela criada
+     */
+    @POST
+    @Path("/{businessId}/hours")
+    @RolesAllowed("owner")
+    @Operation(
+            summary = "Cria uma janela de funcionamento",
+            description = "Cria uma nova janela de funcionamento para um dia da semana do estabelecimento."
+    )
+    @APIResponse(
+            responseCode = "201",
+            description = "Janela de funcionamento criada",
+            content = @Content(schema = @Schema(implementation = BusinessHoursResponse.class))
+    )
+    @APIResponse(
+            responseCode = "400",
+            description = "Dados inválidos na requisição",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "401",
+            description = "Usuário não autenticado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "403",
+            description = "Usuário não tem permissão para alterar este estabelecimento",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "404",
+            description = "Estabelecimento não encontrado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "409",
+            description = "Já existe janela para este dia ou o horário informado é inválido",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    public Response createHour(
+            @Parameter(description = "Identificador do estabelecimento", example = "10", required = true)
+            @PathParam("businessId") Long businessId,
+
+            @RequestBody(
+                    description = "Dados da janela de funcionamento que será criada",
+                    content = @Content(schema = @Schema(implementation = CreateBusinessHoursRequest.class))
+            )
+            @Valid CreateBusinessHoursRequest req) {
+        BusinessHoursResponse body = businessService.createHour(
+                authenticatedUser.id(), businessId, req);
+        return Response.status(Response.Status.CREATED).entity(body).build();
+    }
+
+    /**
+     * Atualiza uma janela de funcionamento do estabelecimento do dono autenticado.
+     *
+     * @param businessId identificador do estabelecimento
+     * @param hourId identificador da janela de funcionamento
+     * @param req novos dados da janela de funcionamento
+     * @return janela de funcionamento atualizada
+     */
+    @PUT
+    @Path("/{businessId}/hours/{hourId}")
+    @RolesAllowed("owner")
+    @Operation(
+            summary = "Atualiza uma janela de funcionamento",
+            description = "Atualiza os horários e o status de atividade de uma janela de funcionamento."
+    )
+    @APIResponse(
+            responseCode = "200",
+            description = "Janela de funcionamento atualizada",
+            content = @Content(schema = @Schema(implementation = BusinessHoursResponse.class))
+    )
+    @APIResponse(
+            responseCode = "400",
+            description = "Dados inválidos na requisição",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "401",
+            description = "Usuário não autenticado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "403",
+            description = "Usuário não tem permissão para alterar esta janela",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "404",
+            description = "Janela de funcionamento não encontrada",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "409",
+            description = "Horário de abertura deve ser anterior ao de fechamento",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    public BusinessHoursResponse updateHour(
+            @Parameter(description = "Identificador do estabelecimento", example = "10", required = true)
+            @PathParam("businessId") Long businessId,
+
+            @Parameter(description = "Identificador da janela de funcionamento", example = "3", required = true)
+            @PathParam("hourId") Long hourId,
+
+            @RequestBody(
+                    description = "Dados da janela de funcionamento que serão atualizados",
+                    content = @Content(schema = @Schema(implementation = UpdateBusinessHoursEntryRequest.class))
+            )
+            @Valid UpdateBusinessHoursEntryRequest req) {
+        return businessService.updateHour(authenticatedUser.id(), businessId, hourId, req);
+    }
+
+    /**
+     * Remove uma janela de funcionamento do estabelecimento do dono autenticado.
+     *
+     * @param businessId identificador do estabelecimento
+     * @param hourId identificador da janela de funcionamento
+     * @return resposta HTTP 204 sem corpo
+     */
+    @DELETE
+    @Path("/{businessId}/hours/{hourId}")
+    @RolesAllowed("owner")
+    @Operation(
+            summary = "Remove uma janela de funcionamento",
+            description = "Remove uma janela de funcionamento de um estabelecimento administrado pelo usuário autenticado."
+    )
+    @APIResponse(
+            responseCode = "204",
+            description = "Janela de funcionamento removida"
+    )
+    @APIResponse(
+            responseCode = "401",
+            description = "Usuário não autenticado",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "403",
+            description = "Usuário não tem permissão para remover esta janela",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    @APIResponse(
+            responseCode = "404",
+            description = "Janela de funcionamento não encontrada",
+            content = @Content(schema = @Schema(implementation = ApiError.class))
+    )
+    public Response deleteHour(
+            @Parameter(description = "Identificador do estabelecimento", example = "10", required = true)
+            @PathParam("businessId") Long businessId,
+
+            @Parameter(description = "Identificador da janela de funcionamento", example = "3", required = true)
+            @PathParam("hourId") Long hourId) {
+        businessService.deleteHour(authenticatedUser.id(), businessId, hourId);
+        return Response.noContent().build();
+    }
+
+    /**
+     * Atualiza em lote os horários de funcionamento de um estabelecimento.
      *
      * <p>Para cada dia informado, o horário existente é atualizado ou uma nova
      * janela é criada quando ainda não houver cadastro para aquele dia.</p>
@@ -393,8 +639,8 @@ public class BusinessResource {
     @Path("/{businessId}/hours")
     @RolesAllowed("owner")
     @Operation(
-            summary = "Atualiza os horários de funcionamento do estabelecimento",
-            description = "Atualiza ou cria as janelas de funcionamento informadas para um estabelecimento administrado pelo usuário autenticado."
+            summary = "Atualiza horários de funcionamento em lote",
+            description = "Atualiza ou cria várias janelas de funcionamento enviadas para um estabelecimento administrado pelo usuário autenticado."
     )
     @APIResponse(
             responseCode = "200",

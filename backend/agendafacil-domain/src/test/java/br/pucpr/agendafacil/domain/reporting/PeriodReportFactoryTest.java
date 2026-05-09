@@ -27,8 +27,10 @@ class PeriodReportFactoryTest {
         @Override public List<Appointment> findByCustomerId(Long c) { return List.of(); }
         @Override public List<Appointment> findActiveByCustomerId(Long c) { return List.of(); }
         @Override public Optional<Appointment> findByIdAndCustomerId(Long a, Long c) { return Optional.empty(); }
+        @Override public Optional<Appointment> findByIdAndOwnerId(Long appointmentId, Long ownerId) { return Optional.empty(); }
         @Override public List<Appointment> findActiveAfter(LocalDateTime cutoff) { return List.of(); }
         @Override public void persist(Appointment appointment) { /* test stub */ }
+        @Override public Appointment update(Appointment appointment) { return null; }
     };
 
     @Test

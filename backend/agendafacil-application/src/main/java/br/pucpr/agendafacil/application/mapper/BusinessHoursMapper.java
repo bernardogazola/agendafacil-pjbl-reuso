@@ -1,6 +1,7 @@
 package br.pucpr.agendafacil.application.mapper;
 
 import br.pucpr.agendafacil.application.dto.BusinessHoursDTO;
+import br.pucpr.agendafacil.application.dto.BusinessHoursResponse;
 import br.pucpr.agendafacil.domain.business.Business;
 import br.pucpr.agendafacil.domain.business.BusinessHours;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -20,6 +21,22 @@ public class BusinessHoursMapper {
      */
     public BusinessHoursDTO toDto(BusinessHours bh) {
         return new BusinessHoursDTO(
+                bh.getDayOfWeek(),
+                bh.getStartTime(),
+                bh.getEndTime(),
+                bh.isActive()
+        );
+    }
+
+    /**
+     * Converte um horário de funcionamento para sua representação de resposta.
+     *
+     * @param bh horário de funcionamento que será convertido
+     * @return DTO com id e dados principais da janela de funcionamento
+     */
+    public BusinessHoursResponse toResponse(BusinessHours bh) {
+        return new BusinessHoursResponse(
+                bh.getId(),
                 bh.getDayOfWeek(),
                 bh.getStartTime(),
                 bh.getEndTime(),

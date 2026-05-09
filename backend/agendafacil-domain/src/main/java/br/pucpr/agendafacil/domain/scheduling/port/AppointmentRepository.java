@@ -74,6 +74,19 @@ public interface AppointmentRepository {
     Optional<Appointment> findByIdAndCustomerId(Long appointmentId, Long customerId);
 
     /**
+     * Busca um agendamento pelo id, garantindo que o estabelecimento do
+     * agendamento pertence ao dono informado.
+     *
+     * <p>Esse método é usado em operações realizadas pelo dono do
+     * estabelecimento, como alteração de status ou reagendamento.</p>
+     *
+     * @param appointmentId identificador do agendamento
+     * @param ownerId identificador do dono do estabelecimento
+     * @return o agendamento encontrado, quando existir e pertencer a um estabelecimento do dono
+     */
+    Optional<Appointment> findByIdAndOwnerId(Long appointmentId, Long ownerId);
+
+    /**
      * Busca agendamentos ativos com início após o instante informado.
      *
      * <p>São considerados ativos os agendamentos com status {@code SCHEDULED}
@@ -90,4 +103,15 @@ public interface AppointmentRepository {
      * @param appointment agendamento a ser salvo
      */
     void persist(Appointment appointment);
+
+    /**
+     * Atualiza um agendamento existente.
+     *
+     * <p>A implementação deve localizar o registro pelo id do agendamento
+     * informado e aplicar os novos dados.</p>
+     *
+     * @param appointment agendamento com os dados atualizados
+     * @return agendamento atualizado
+     */
+    Appointment update(Appointment appointment);
 }

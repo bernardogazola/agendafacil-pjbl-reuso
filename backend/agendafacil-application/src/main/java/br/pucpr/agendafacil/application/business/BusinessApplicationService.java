@@ -10,6 +10,7 @@ import br.pucpr.agendafacil.domain.business.OfferedService;
 import br.pucpr.agendafacil.domain.business.port.BusinessHoursRepository;
 import br.pucpr.agendafacil.domain.business.port.BusinessRepository;
 import br.pucpr.agendafacil.domain.business.port.OfferedServiceRepository;
+import br.pucpr.agendafacil.shared.exception.ConflictException;
 import br.pucpr.agendafacil.shared.exception.ForbiddenException;
 import br.pucpr.agendafacil.shared.exception.NotFoundException;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -285,6 +286,143 @@ public class BusinessApplicationService {
         }
         Business business = loadBusinessOrThrow(businessId);
         assertOwnership(ownerId, business);
+    }
+
+    /**
+     * Lista as janelas de funcionamento de um estabelecimento do dono autenticado.
+     *
+     * @param ownerId identificador do dono autenticado
+     * @param businessId identificador do estabelecimento
+     * @return lista de janelas de funcionamento do estabelecimento
+     * @throws ForbiddenException quando o estabelecimento não pertence ao dono
+     * @throws NotFoundException quando o estabelecimento não existir
+     */
+    public List<BusinessHoursResponse> listHours(Long ownerId, Long businessId) {
+        Business business = loadBusinessOrThrow(businessId);
+        assertOwnership(ownerId, business);
+        return businessHoursRepository.findByBusinessId(businessId).stream()
+                .map(businessHoursMapper::toResponse)
+                .toList();
+    }
+
+    /**
+     * Busca uma janela de funcionamento de um estabelecimento do dono autenticado.
+     *
+     * @param ownerId identificador do dono autenticado
+     * @param businessId identificador do estabelecimento
+     * @param hourId identificador da janela de funcionamento
+     * @return dados da janela de funcionamento encontrada
+     * @throws ForbiddenException quando o estabelecimento não pertence ao dono
+     * @throws NotFoundException quando a janela não existir no estabelecimento
+     */
+    public BusinessHoursResponse getHourById(Long ownerId, Long businessId, Long hourId) {
+        BusinessHours hours = loadHoursOrThrow(hourId);
+        assertHoursOwnership(ownerId, businessId, hours);
+        return businessHoursMapper.toResponse(hours);
+    }
+
+    /**
+     * Cria uma nova janela de funcionamento para um estabelecimento.
+     *
+     * <p>Não é permitido criar mais de uma janela para o mesmo dia da semana no
+     * mesmo estabelecimento.</p>
+     *
+     * @param ownerId identificador do dono autenticado
+     * @param businessId identificador do estabelecimento
+     * @param req dados da janela de funcionamento
+     * @return janela de funcionamento criada
+     * @throws ConflictException quando já existir janela para o dia informado ou
+     *         quando o horário de abertura não for anterior ao de fechamento
+     * @throws ForbiddenException quando o estabelecimento não pertence ao dono
+     * @throws NotFoundException quando o estabelecimento não existir
+     */
+    @Transactional
+    public BusinessHoursResponse createHour(Long ownerId, Long businessId,
+                                            CreateBusinessHoursRequest req) {
+        Business business = loadBusinessOrThrow(businessId);
+        assertOwnership(ownerId, business);
+        if (businessHoursRepository.findByBusinessAndDayOfWeek(businessId, req.dayOfWeek()).isPresent()) {
+            throw new ConflictException(
+                    "Já existe uma janela de funcionamento para este dia da semana.");
+        }
+        validateTimeRange(req.startTime(), req.endTime());
+        BusinessHours hours = new BusinessHours(business, req.dayOfWeek(),
+                req.startTime(), req.endTime());
+        if (req.active() != null && !req.active()) {
+            hours.deactivate();
+        }
+        businessHoursRepository.persist(hours);
+        return businessHoursMapper.toResponse(hours);
+    }
+
+    /**
+     * Atualiza uma janela de funcionamento de um estabelecimento.
+     *
+     * <p>O dia da semana não é alterado por este método. Apenas os horários e o
+     * status de atividade da janela são atualizados.</p>
+     *
+     * @param ownerId identificador do dono autenticado
+     * @param businessId identificador do estabelecimento
+     * @param hourId identificador da janela de funcionamento
+     * @param req novos dados da janela de funcionamento
+     * @return janela de funcionamento atualizada
+     * @throws ConflictException quando o horário de abertura não for anterior ao de fechamento
+     * @throws ForbiddenException quando o estabelecimento não pertence ao dono
+     * @throws NotFoundException quando a janela não existir no estabelecimento
+     */
+    @Transactional
+    public BusinessHoursResponse updateHour(Long ownerId, Long businessId, Long hourId,
+                                            UpdateBusinessHoursEntryRequest req) {
+        BusinessHours hours = loadHoursOrThrow(hourId);
+        assertHoursOwnership(ownerId, businessId, hours);
+        validateTimeRange(req.startTime(), req.endTime());
+        hours.setStartTime(req.startTime());
+        hours.setEndTime(req.endTime());
+        if (Boolean.TRUE.equals(req.active())) hours.activate();
+        else hours.deactivate();
+        BusinessHours saved = businessHoursRepository.update(hours);
+        return businessHoursMapper.toResponse(saved);
+    }
+
+    /**
+     * Remove uma janela de funcionamento de um estabelecimento.
+     *
+     * @param ownerId identificador do dono autenticado
+     * @param businessId identificador do estabelecimento
+     * @param hourId identificador da janela de funcionamento
+     * @throws ForbiddenException quando o estabelecimento não pertence ao dono
+     * @throws NotFoundException quando a janela não existir no estabelecimento
+     */
+    @Transactional
+    public void deleteHour(Long ownerId, Long businessId, Long hourId) {
+        BusinessHours hours = loadHoursOrThrow(hourId);
+        assertHoursOwnership(ownerId, businessId, hours);
+        businessHoursRepository.removeById(hourId);
+    }
+
+    private BusinessHours loadHoursOrThrow(Long hourId) {
+        BusinessHours hours = businessHoursRepository.getById(hourId);
+        if (hours == null) {
+            throw new NotFoundException("Janela de funcionamento não encontrada.");
+        }
+        return hours;
+    }
+
+    private void assertHoursOwnership(Long ownerId, Long businessId, BusinessHours hours) {
+        if (hours.getBusiness() == null
+                || !Objects.equals(hours.getBusiness().getId(), businessId)) {
+            throw new NotFoundException(
+                    "Janela de funcionamento não pertence a este estabelecimento.");
+        }
+        Business business = loadBusinessOrThrow(businessId);
+        assertOwnership(ownerId, business);
+    }
+
+    private void validateTimeRange(LocalTime start, LocalTime end) {
+        if (!start.isBefore(end)) {
+            throw new ConflictException(
+                    "O horário de abertura deve ser anterior ao de fechamento.");
+        }
     }
 
     /**

@@ -32,6 +32,13 @@ public class BusinessHoursPanacheRepository implements BusinessHoursRepository,
     }
 
     @Override
+    public BusinessHours getById(Long id) {
+        return findByIdOptional(id)
+                .map(BusinessHoursMapper::toDomain)
+                .orElse(null);
+    }
+
+    @Override
     public List<BusinessHours> findByBusinessId(Long businessId) {
         return list("business.id", businessId).stream()
                 .map(BusinessHoursMapper::toDomain)
@@ -52,5 +59,17 @@ public class BusinessHoursPanacheRepository implements BusinessHoursRepository,
             persist(jpa);
         }
         hours.setId(jpa.getId());
+    }
+
+    @Override
+    public BusinessHours update(BusinessHours hours) {
+        BusinessHoursJpaEntity jpa = BusinessHoursMapper.toJpa(hours, em);
+        BusinessHoursJpaEntity merged = em.merge(jpa);
+        return BusinessHoursMapper.toDomain(merged);
+    }
+
+    @Override
+    public void removeById(Long id) {
+        delete("id", id);
     }
 }

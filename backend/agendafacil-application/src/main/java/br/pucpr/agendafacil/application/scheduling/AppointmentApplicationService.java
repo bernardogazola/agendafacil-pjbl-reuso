@@ -1,8 +1,6 @@
 package br.pucpr.agendafacil.application.scheduling;
 
-import br.pucpr.agendafacil.application.dto.AppointmentResponse;
-import br.pucpr.agendafacil.application.dto.BookAppointmentRequest;
-import br.pucpr.agendafacil.application.dto.CancellationResponse;
+import br.pucpr.agendafacil.application.dto.*;
 import br.pucpr.agendafacil.application.mapper.AppointmentMapper;
 import br.pucpr.agendafacil.application.notification.NotificationApplicationService;
 import br.pucpr.agendafacil.domain.business.Business;
@@ -40,14 +38,14 @@ import java.util.Objects;
 /**
  * Serviço de aplicação responsável pelos casos de uso de agendamento.
  *
- * <p>Centraliza a criação, cancelamento e consulta de agendamentos. Durante a
- * reserva, o serviço valida cliente, estabelecimento e serviço, aplica as
- * regras específicas da categoria, verifica conflitos de agenda, calcula o
- * preço final e registra a reserva.</p>
+ * <p>Centraliza a criação, cancelamento, consulta, alteração de status e
+ * reagendamento de agendamentos. Durante a reserva, o serviço valida cliente,
+ * estabelecimento e serviço, aplica as regras específicas da categoria,
+ * verifica conflitos de agenda, calcula o preço final e registra a reserva.</p>
  *
- * <p>Também aciona os componentes de domínio usados no fluxo, como processadores
- * de agendamento, políticas de preço, políticas de cancelamento, registro de
- * conflitos e envio de notificações.</p>
+ * <p>Também aciona os componentes de domínio usados no fluxo, como
+ * processadores de agendamento, políticas de preço, políticas de cancelamento,
+ * registro de conflitos e envio de notificações.</p>
  */
 @ApplicationScoped
 public class AppointmentApplicationService {
@@ -219,6 +217,115 @@ public class AppointmentApplicationService {
                 ? appointmentRepository.findByCustomerId(customerId)
                 : appointmentRepository.findActiveByCustomerId(customerId);
         return list.stream().map(appointmentMapper::toResponse).toList();
+    }
+
+    /**
+     * Altera o status de um agendamento a partir de uma ação solicitada pelo dono
+     * do estabelecimento.
+     *
+     * <p>A ação recebida é convertida para o status de destino e a transição é
+     * validada pela máquina de estados de {@link AppointmentStatus}. Transições
+     * não permitidas são rejeitadas como regra de negócio.</p>
+     *
+     * @param appointmentId identificador do agendamento
+     * @param ownerId identificador do dono autenticado
+     * @param req ação de mudança de status
+     * @return agendamento atualizado
+     * @throws NotFoundException quando o agendamento não existir ou não pertencer ao dono
+     * @throws BusinessRuleException quando a transição de status não for permitida
+     */
+    @Transactional
+    public AppointmentResponse changeStatus(Long appointmentId, Long ownerId,
+                                            UpdateAppointmentStatusRequest req) {
+        Appointment appt = appointmentRepository
+                .findByIdAndOwnerId(appointmentId, ownerId)
+                .orElseThrow(() -> new NotFoundException("Agendamento não encontrado."));
+
+        AppointmentStatus target = mapAction(req.action());
+        if (!appt.getStatus().canTransitionTo(target)) {
+            throw new BusinessRuleException(
+                    "Transição inválida: " + appt.getStatus() + " → " + target + ".");
+        }
+        appt.setStatus(target);
+
+        Appointment saved = appointmentRepository.update(appt);
+
+        if (target == AppointmentStatus.COMPLETED
+                || target == AppointmentStatus.NO_SHOW
+                || target == AppointmentStatus.CANCELED) {
+            AppointmentRegistry.getInstance().unregister(saved);
+        }
+        return appointmentMapper.toResponse(saved);
+    }
+
+    /**
+     * Reagenda um agendamento ativo pertencente ao dono do estabelecimento.
+     *
+     * <p>Antes de salvar o novo horário, o método verifica se existe conflito na
+     * agenda do estabelecimento. Caso o novo horário esteja indisponível, o
+     * agendamento mantém o horário anterior.</p>
+     *
+     * @param appointmentId identificador do agendamento
+     * @param ownerId identificador do dono autenticado
+     * @param req nova data e hora do agendamento
+     * @return agendamento reagendado
+     * @throws NotFoundException quando o agendamento não existir ou não pertencer ao dono
+     * @throws BusinessRuleException quando o agendamento não estiver ativo
+     * @throws ConflictException quando o novo horário estiver indisponível
+     */
+    @Transactional
+    public AppointmentResponse reschedule(Long appointmentId, Long ownerId,
+                                          RescheduleAppointmentRequest req) {
+        Appointment appt = appointmentRepository
+                .findByIdAndOwnerId(appointmentId, ownerId)
+                .orElseThrow(() -> new NotFoundException("Agendamento não encontrado."));
+        if (!appt.isActive()) {
+            throw new BusinessRuleException(
+                    "Apenas agendamentos ativos podem ser reagendados.");
+        }
+
+        LocalDateTime previousAt = appt.getScheduledAt();
+        AppointmentRegistry.getInstance().unregister(appt);
+
+        try {
+            appt.setScheduledAt(req.newScheduledAt());
+
+            List<Appointment> sameDay = appointmentRepository
+                    .findByBusinessAndDate(appt.getBusiness().getId(),
+                            req.newScheduledAt().toLocalDate())
+                    .stream()
+                    .filter(a -> !Objects.equals(a.getId(), appt.getId()))
+                    .toList();
+
+            Schedule schedule = new Schedule(
+                    appt.getBusiness(),
+                    req.newScheduledAt().toLocalDate(),
+                    req.newScheduledAt().toLocalDate(),
+                    sameDay
+            );
+
+            if (schedule.hasConflict(req.newScheduledAt(), appt.getEstimatedDurationMinutes())) {
+                throw new ConflictException(
+                        "Horário indisponível para este estabelecimento.");
+            }
+
+            Appointment saved = appointmentRepository.update(appt);
+            AppointmentRegistry.getInstance().register(saved);
+
+            return appointmentMapper.toResponse(saved);
+        } catch (RuntimeException e) {
+            appt.setScheduledAt(previousAt);
+            AppointmentRegistry.getInstance().register(appt);
+            throw e;
+        }
+    }
+
+    private AppointmentStatus mapAction(AppointmentStatusAction action) {
+        return switch (action) {
+            case CONFIRM -> AppointmentStatus.CONFIRMED;
+            case COMPLETE -> AppointmentStatus.COMPLETED;
+            case MARK_NO_SHOW -> AppointmentStatus.NO_SHOW;
+        };
     }
 
     /**

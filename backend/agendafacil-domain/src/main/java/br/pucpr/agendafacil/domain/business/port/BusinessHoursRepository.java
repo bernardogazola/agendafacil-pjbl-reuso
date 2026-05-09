@@ -16,6 +16,14 @@ import java.util.Optional;
 public interface BusinessHoursRepository {
 
     /**
+     * Busca um horário de funcionamento pelo id.
+     *
+     * @param id identificador do horário de funcionamento
+     * @return o horário de funcionamento encontrado ou {@code null} quando não existir
+     */
+    BusinessHours getById(Long id);
+
+    /**
      * Busca os horários de funcionamento de um estabelecimento.
      *
      * <p>Normalmente retorna as janelas cadastradas para os dias da semana do
@@ -42,4 +50,22 @@ public interface BusinessHoursRepository {
      * @param hours horário de funcionamento a ser salvo
      */
     void persist(BusinessHours hours);
+
+    /**
+     * Atualiza um horário de funcionamento existente.
+     *
+     * <p>A implementação deve localizar o registro pelo id do horário informado
+     * e aplicar os novos dados.</p>
+     *
+     * @param hours horário de funcionamento com os dados atualizados
+     * @return horário de funcionamento atualizado
+     */
+    BusinessHours update(BusinessHours hours);
+
+    /**
+     * Remove um horário de funcionamento pelo id.
+     *
+     * @param id identificador do horário de funcionamento
+     */
+    void removeById(Long id);
 }
