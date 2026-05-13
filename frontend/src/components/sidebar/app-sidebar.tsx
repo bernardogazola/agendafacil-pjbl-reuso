@@ -81,7 +81,8 @@ const SHORTCUTS_BY_ROLE: Record<UserRole, ShortcutItem[]> = {
 	admin: [
 		{
 			name: "Novo administrador",
-			url: "/admin/administrators/new",
+			url: "/admin/administrators",
+			search: { create: true },
 			icon: UserPlus,
 		},
 	],

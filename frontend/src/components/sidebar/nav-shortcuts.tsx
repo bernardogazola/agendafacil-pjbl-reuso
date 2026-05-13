@@ -13,6 +13,7 @@ export interface ShortcutItem {
 	name: string;
 	url: string;
 	icon: LucideIcon;
+	search?: Record<string, unknown>;
 }
 
 export function NavShortcuts({
@@ -27,7 +28,7 @@ export function NavShortcuts({
 					<SidebarMenuItem key={item.url}>
 						<SidebarMenuButton
 							tooltip={item.name}
-							render={<Link to={item.url} />}
+							render={<Link to={item.url} search={item.search} />}
 						>
 							<item.icon />
 							<span>{item.name}</span>
