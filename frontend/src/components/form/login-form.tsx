@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import { useNavigate } from "@tanstack/react-router";
 import { EyeIcon, EyeOffIcon, LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useLogin } from "@/lib/queries/auth";
 import { cn } from "@/lib/utils";
 import { loginSchema } from "@/lib/validator/auth.schema";
 
@@ -29,6 +31,8 @@ export function LoginForm({
 	...props
 }: React.ComponentProps<"div">) {
 	const [showPassword, setShowPassword] = useState(false);
+	const navigate = useNavigate();
+	const login = useLogin();
 	const form = useForm({
 		defaultValues: {
 			email: "",
@@ -40,13 +44,16 @@ export function LoginForm({
 			onChange: loginSchema,
 		},
 		onSubmit: async ({ value }) => {
-			toast.success("Debug: valores enviados", {
-				description: (
-					<pre className="mt-2 w-[320px] overflow-x-auto rounded-md bg-code p-4 text-code-foreground">
-						<code>{JSON.stringify(value, null, 2)}</code>
-					</pre>
-				),
-			});
+			try {
+				await login.mutateAsync(value);
+				await navigate({ to: "/" });
+			} catch (err) {
+				toast.error(
+					err instanceof Error && err.message
+						? err.message
+						: "Não foi possível entrar. Tente novamente.",
+				);
+			}
 		},
 	});
 	return (

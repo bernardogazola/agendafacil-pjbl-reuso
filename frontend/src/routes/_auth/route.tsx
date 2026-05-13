@@ -1,8 +1,18 @@
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Link,
+	Outlet,
+	redirect,
+} from "@tanstack/react-router";
 import { GalleryVerticalEnd } from "lucide-react";
 import ToggleTheme from "@/components/theme/theme-toggle";
 
 export const Route = createFileRoute("/_auth")({
+	beforeLoad: ({ context }) => {
+		if (context.session) {
+			throw redirect({ to: "/" });
+		}
+	},
 	component: AuthLayout,
 });
 

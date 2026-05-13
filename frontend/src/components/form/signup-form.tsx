@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, LoaderCircle } from "lucide-react";
 import type { ComponentProps } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -16,6 +17,7 @@ import {
 	type StepId,
 	signupDefaultValues,
 } from "@/lib/config/signup-form.config";
+import { useSignupCustomer, useSignupOwner } from "@/lib/queries/auth";
 import type {
 	SignupCustomerRequest,
 	SignupOwnerRequest,
@@ -63,22 +65,28 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [direction, setDirection] = useState<"forward" | "backward">("forward");
 	const isLastStepRef = useRef(false);
+	const navigate = useNavigate();
+	const signupCustomer = useSignupCustomer();
+	const signupOwner = useSignupOwner();
 
 	const form = useForm({
 		defaultValues: signupDefaultValues,
 		onSubmit: async ({ value }) => {
 			if (!isLastStepRef.current) return;
-			const payload =
-				value.role === "owner"
-					? buildOwnerPayload(value)
-					: buildCustomerPayload(value);
-			toast.success("Debug: valores enviados", {
-				description: (
-					<pre className="mt-2 w-[320px] overflow-x-auto rounded-md bg-code p-4 text-code-foreground">
-						<code>{JSON.stringify(payload, null, 2)}</code>
-					</pre>
-				),
-			});
+			try {
+				if (value.role === "owner") {
+					await signupOwner.mutateAsync(buildOwnerPayload(value));
+				} else {
+					await signupCustomer.mutateAsync(buildCustomerPayload(value));
+				}
+				await navigate({ to: "/" });
+			} catch (err) {
+				toast.error(
+					err instanceof Error && err.message
+						? err.message
+						: "Não foi possível concluir o cadastro. Tente novamente.",
+				);
+			}
 		},
 	});
 
