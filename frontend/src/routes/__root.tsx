@@ -2,13 +2,20 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import {
 	createRootRouteWithContext,
 	HeadContent,
+	Link,
 	Scripts,
+	useRouter,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { useEffect } from "react";
+import { toast } from "sonner";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { notifySessionChange } from "@/lib/auth";
 import { getSession } from "@/lib/auth.isomorphic";
+import { queryClient } from "@/lib/query-client";
+import { logoutFn } from "@/lib/server/auth-fns";
 import type { RouterContext } from "@/router";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import appCss from "../styles.css?url";
@@ -31,7 +38,47 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 		links: [{ rel: "stylesheet", href: appCss }],
 	}),
 	shellComponent: RootDocument,
+	errorComponent: RootErrorBoundary,
+	notFoundComponent: NotFoundPage,
 });
+
+function RootErrorBoundary({ error }: Readonly<{ error: Error }>) {
+	return (
+		<div className="mx-auto w-full max-w-lg px-4 py-16 text-center">
+			<h1 className="text-xl font-semibold text-foreground">
+				Algo não saiu como esperado
+			</h1>
+			<p className="mt-2 text-sm text-muted-foreground">
+				{error.message || "Erro inesperado. Tente novamente."}
+			</p>
+			<Link
+				to="/"
+				className="mt-6 inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/80"
+			>
+				Voltar ao início
+			</Link>
+		</div>
+	);
+}
+
+function NotFoundPage() {
+	return (
+		<div className="mx-auto w-full max-w-lg px-4 py-16 text-center">
+			<h1 className="text-xl font-semibold text-foreground">
+				Página não encontrada
+			</h1>
+			<p className="mt-2 text-sm text-muted-foreground">
+				A rota acessada não existe ou foi movida.
+			</p>
+			<Link
+				to="/"
+				className="mt-6 inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/80"
+			>
+				Ir para o início
+			</Link>
+		</div>
+	);
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
@@ -46,7 +93,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 					enableSystem
 					disableTransitionOnChange
 				>
-					<TooltipProvider>{children}</TooltipProvider>
+					<TooltipProvider>
+						{children}
+						<UnauthorizedListener />
+					</TooltipProvider>
 					<TanStackDevtools
 						config={{
 							position: "bottom-right",
@@ -65,4 +115,21 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</body>
 		</html>
 	);
+}
+
+function UnauthorizedListener() {
+	const router = useRouter();
+	useEffect(() => {
+		const handler = async () => {
+			await logoutFn();
+			queryClient.clear();
+			notifySessionChange();
+			toast.error("Sessão expirada. Faça login novamente.");
+			await router.invalidate();
+			router.navigate({ to: "/login" });
+		};
+		globalThis.addEventListener("agf:unauthorized", handler);
+		return () => globalThis.removeEventListener("agf:unauthorized", handler);
+	}, [router]);
+	return null;
 }
