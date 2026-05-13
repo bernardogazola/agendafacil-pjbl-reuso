@@ -14,9 +14,9 @@ import { Route as CustomerRouteImport } from './routes/customer'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as PublicRouteRouteImport } from './routes/_public/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as OwnerIndexRouteImport } from './routes/owner/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as PublicIndexRouteImport } from './routes/_public/index'
 import { Route as OwnerServicesRouteImport } from './routes/owner/services'
 import { Route as OwnerReviewsRouteImport } from './routes/owner/reviews'
 import { Route as OwnerReportsRouteImport } from './routes/owner/reports'
@@ -58,11 +58,6 @@ const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const OwnerIndexRoute = OwnerIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -72,6 +67,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const PublicIndexRoute = PublicIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PublicRouteRoute,
 } as any)
 const OwnerServicesRoute = OwnerServicesRouteImport.update({
   id: '/services',
@@ -162,7 +162,7 @@ const CustomerBookBusinessIdServiceIdRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof PublicIndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/customer': typeof CustomerRouteWithChildren
   '/owner': typeof OwnerRouteWithChildren
@@ -187,7 +187,7 @@ export interface FileRoutesByFullPath {
   '/customer/book/$businessId/$serviceId': typeof CustomerBookBusinessIdServiceIdRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/': typeof PublicIndexRoute
   '/customer': typeof CustomerRouteWithChildren
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
@@ -211,7 +211,6 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/_auth': typeof AuthRouteRouteWithChildren
   '/_public': typeof PublicRouteRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
@@ -231,6 +230,7 @@ export interface FileRoutesById {
   '/owner/reports': typeof OwnerReportsRoute
   '/owner/reviews': typeof OwnerReviewsRoute
   '/owner/services': typeof OwnerServicesRoute
+  '/_public/': typeof PublicIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/owner/': typeof OwnerIndexRoute
   '/_public/businesses/$businessId': typeof PublicBusinessesBusinessIdRoute
@@ -288,7 +288,6 @@ export interface FileRouteTypes {
     | '/customer/book/$businessId/$serviceId'
   id:
     | '__root__'
-    | '/'
     | '/_auth'
     | '/_public'
     | '/admin'
@@ -308,6 +307,7 @@ export interface FileRouteTypes {
     | '/owner/reports'
     | '/owner/reviews'
     | '/owner/services'
+    | '/_public/'
     | '/admin/'
     | '/owner/'
     | '/_public/businesses/$businessId'
@@ -316,7 +316,6 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   PublicRouteRoute: typeof PublicRouteRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
@@ -361,13 +360,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/owner/': {
       id: '/owner/'
       path: '/'
@@ -381,6 +373,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/_public/': {
+      id: '/_public/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof PublicIndexRouteImport
+      parentRoute: typeof PublicRouteRoute
     }
     '/owner/services': {
       id: '/owner/services'
@@ -519,11 +518,13 @@ const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
 )
 
 interface PublicRouteRouteChildren {
+  PublicIndexRoute: typeof PublicIndexRoute
   PublicBusinessesBusinessIdRoute: typeof PublicBusinessesBusinessIdRoute
   PublicBusinessesIndexRoute: typeof PublicBusinessesIndexRoute
 }
 
 const PublicRouteRouteChildren: PublicRouteRouteChildren = {
+  PublicIndexRoute: PublicIndexRoute,
   PublicBusinessesBusinessIdRoute: PublicBusinessesBusinessIdRoute,
   PublicBusinessesIndexRoute: PublicBusinessesIndexRoute,
 }
@@ -589,7 +590,6 @@ const OwnerRouteChildren: OwnerRouteChildren = {
 const OwnerRouteWithChildren = OwnerRoute._addFileChildren(OwnerRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   AuthRouteRoute: AuthRouteRouteWithChildren,
   PublicRouteRoute: PublicRouteRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
