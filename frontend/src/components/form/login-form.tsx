@@ -45,8 +45,15 @@ export function LoginForm({
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				await login.mutateAsync(value);
-				await navigate({ to: "/" });
+				const result = await login.mutateAsync(value);
+				toast.success(`Bem-vindo de volta, ${result.name}!`);
+				const target =
+					result.role === "customer"
+						? "/customer/me"
+						: result.role === "admin"
+							? "/admin"
+							: "/owner";
+				await navigate({ to: target });
 			} catch (err) {
 				toast.error(
 					err instanceof Error && err.message

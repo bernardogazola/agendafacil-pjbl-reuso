@@ -75,11 +75,22 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 			if (!isLastStepRef.current) return;
 			try {
 				if (value.role === "owner") {
-					await signupOwner.mutateAsync(buildOwnerPayload(value));
+					const result = await signupOwner.mutateAsync(
+						buildOwnerPayload(value),
+					);
+					toast.success(`Negócio criado!`, {
+						description: `Bem-vindo ${result.name}.`,
+					});
+					await navigate({ to: `/owner` });
 				} else {
-					await signupCustomer.mutateAsync(buildCustomerPayload(value));
+					const result = await signupCustomer.mutateAsync(
+						buildCustomerPayload(value),
+					);
+					toast.success(`Conta criada!`, {
+						description: `Bem-vindo ${result.name}.`,
+					});
+					await navigate({ to: `/customer/me` });
 				}
-				await navigate({ to: "/" });
 			} catch (err) {
 				toast.error(
 					err instanceof Error && err.message
