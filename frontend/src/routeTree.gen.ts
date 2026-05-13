@@ -12,14 +12,20 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as OwnerRouteImport } from './routes/owner'
 import { Route as CustomerRouteImport } from './routes/customer'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as PublicRouteRouteImport } from './routes/_public/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as CustomerReviewsRouteImport } from './routes/customer/reviews'
+import { Route as CustomerMeRouteImport } from './routes/customer/me'
 import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
 import { Route as AdminBusinessesRouteImport } from './routes/admin/businesses'
 import { Route as AdminAdministratorsRouteImport } from './routes/admin/administrators'
 import { Route as AuthSignupRouteImport } from './routes/_auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
+import { Route as PublicBusinessesIndexRouteImport } from './routes/_public/businesses.index'
+import { Route as PublicBusinessesBusinessIdRouteImport } from './routes/_public/businesses.$businessId'
+import { Route as CustomerBookBusinessIdServiceIdRouteImport } from './routes/customer/book.$businessId.$serviceId'
 
 const OwnerRoute = OwnerRouteImport.update({
   id: '/owner',
@@ -36,6 +42,10 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PublicRouteRoute = PublicRouteRouteImport.update({
+  id: '/_public',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
   getParentRoute: () => rootRouteImport,
@@ -49,6 +59,16 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const CustomerReviewsRoute = CustomerReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => CustomerRoute,
+} as any)
+const CustomerMeRoute = CustomerMeRouteImport.update({
+  id: '/me',
+  path: '/me',
+  getParentRoute: () => CustomerRoute,
 } as any)
 const AdminCustomersRoute = AdminCustomersRouteImport.update({
   id: '/customers',
@@ -75,43 +95,76 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const PublicBusinessesIndexRoute = PublicBusinessesIndexRouteImport.update({
+  id: '/businesses/',
+  path: '/businesses/',
+  getParentRoute: () => PublicRouteRoute,
+} as any)
+const PublicBusinessesBusinessIdRoute =
+  PublicBusinessesBusinessIdRouteImport.update({
+    id: '/businesses/$businessId',
+    path: '/businesses/$businessId',
+    getParentRoute: () => PublicRouteRoute,
+  } as any)
+const CustomerBookBusinessIdServiceIdRoute =
+  CustomerBookBusinessIdServiceIdRouteImport.update({
+    id: '/book/$businessId/$serviceId',
+    path: '/book/$businessId/$serviceId',
+    getParentRoute: () => CustomerRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
-  '/customer': typeof CustomerRoute
+  '/customer': typeof CustomerRouteWithChildren
   '/owner': typeof OwnerRoute
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
   '/admin/administrators': typeof AdminAdministratorsRoute
   '/admin/businesses': typeof AdminBusinessesRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/customer/me': typeof CustomerMeRoute
+  '/customer/reviews': typeof CustomerReviewsRoute
   '/admin/': typeof AdminIndexRoute
+  '/businesses/$businessId': typeof PublicBusinessesBusinessIdRoute
+  '/businesses/': typeof PublicBusinessesIndexRoute
+  '/customer/book/$businessId/$serviceId': typeof CustomerBookBusinessIdServiceIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/customer': typeof CustomerRoute
+  '/customer': typeof CustomerRouteWithChildren
   '/owner': typeof OwnerRoute
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
   '/admin/administrators': typeof AdminAdministratorsRoute
   '/admin/businesses': typeof AdminBusinessesRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/customer/me': typeof CustomerMeRoute
+  '/customer/reviews': typeof CustomerReviewsRoute
   '/admin': typeof AdminIndexRoute
+  '/businesses/$businessId': typeof PublicBusinessesBusinessIdRoute
+  '/businesses': typeof PublicBusinessesIndexRoute
+  '/customer/book/$businessId/$serviceId': typeof CustomerBookBusinessIdServiceIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteRouteWithChildren
+  '/_public': typeof PublicRouteRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
-  '/customer': typeof CustomerRoute
+  '/customer': typeof CustomerRouteWithChildren
   '/owner': typeof OwnerRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/signup': typeof AuthSignupRoute
   '/admin/administrators': typeof AdminAdministratorsRoute
   '/admin/businesses': typeof AdminBusinessesRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/customer/me': typeof CustomerMeRoute
+  '/customer/reviews': typeof CustomerReviewsRoute
   '/admin/': typeof AdminIndexRoute
+  '/_public/businesses/$businessId': typeof PublicBusinessesBusinessIdRoute
+  '/_public/businesses/': typeof PublicBusinessesIndexRoute
+  '/customer/book/$businessId/$serviceId': typeof CustomerBookBusinessIdServiceIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -125,7 +178,12 @@ export interface FileRouteTypes {
     | '/admin/administrators'
     | '/admin/businesses'
     | '/admin/customers'
+    | '/customer/me'
+    | '/customer/reviews'
     | '/admin/'
+    | '/businesses/$businessId'
+    | '/businesses/'
+    | '/customer/book/$businessId/$serviceId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -136,11 +194,17 @@ export interface FileRouteTypes {
     | '/admin/administrators'
     | '/admin/businesses'
     | '/admin/customers'
+    | '/customer/me'
+    | '/customer/reviews'
     | '/admin'
+    | '/businesses/$businessId'
+    | '/businesses'
+    | '/customer/book/$businessId/$serviceId'
   id:
     | '__root__'
     | '/'
     | '/_auth'
+    | '/_public'
     | '/admin'
     | '/customer'
     | '/owner'
@@ -149,14 +213,20 @@ export interface FileRouteTypes {
     | '/admin/administrators'
     | '/admin/businesses'
     | '/admin/customers'
+    | '/customer/me'
+    | '/customer/reviews'
     | '/admin/'
+    | '/_public/businesses/$businessId'
+    | '/_public/businesses/'
+    | '/customer/book/$businessId/$serviceId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
+  PublicRouteRoute: typeof PublicRouteRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
-  CustomerRoute: typeof CustomerRoute
+  CustomerRoute: typeof CustomerRouteWithChildren
   OwnerRoute: typeof OwnerRoute
 }
 
@@ -183,6 +253,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_public': {
+      id: '/_public'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof PublicRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_auth': {
       id: '/_auth'
       path: ''
@@ -203,6 +280,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/customer/reviews': {
+      id: '/customer/reviews'
+      path: '/reviews'
+      fullPath: '/customer/reviews'
+      preLoaderRoute: typeof CustomerReviewsRouteImport
+      parentRoute: typeof CustomerRoute
+    }
+    '/customer/me': {
+      id: '/customer/me'
+      path: '/me'
+      fullPath: '/customer/me'
+      preLoaderRoute: typeof CustomerMeRouteImport
+      parentRoute: typeof CustomerRoute
     }
     '/admin/customers': {
       id: '/admin/customers'
@@ -239,6 +330,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/_public/businesses/': {
+      id: '/_public/businesses/'
+      path: '/businesses'
+      fullPath: '/businesses/'
+      preLoaderRoute: typeof PublicBusinessesIndexRouteImport
+      parentRoute: typeof PublicRouteRoute
+    }
+    '/_public/businesses/$businessId': {
+      id: '/_public/businesses/$businessId'
+      path: '/businesses/$businessId'
+      fullPath: '/businesses/$businessId'
+      preLoaderRoute: typeof PublicBusinessesBusinessIdRouteImport
+      parentRoute: typeof PublicRouteRoute
+    }
+    '/customer/book/$businessId/$serviceId': {
+      id: '/customer/book/$businessId/$serviceId'
+      path: '/book/$businessId/$serviceId'
+      fullPath: '/customer/book/$businessId/$serviceId'
+      preLoaderRoute: typeof CustomerBookBusinessIdServiceIdRouteImport
+      parentRoute: typeof CustomerRoute
+    }
   }
 }
 
@@ -254,6 +366,20 @@ const AuthRouteRouteChildren: AuthRouteRouteChildren = {
 
 const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
   AuthRouteRouteChildren,
+)
+
+interface PublicRouteRouteChildren {
+  PublicBusinessesBusinessIdRoute: typeof PublicBusinessesBusinessIdRoute
+  PublicBusinessesIndexRoute: typeof PublicBusinessesIndexRoute
+}
+
+const PublicRouteRouteChildren: PublicRouteRouteChildren = {
+  PublicBusinessesBusinessIdRoute: PublicBusinessesBusinessIdRoute,
+  PublicBusinessesIndexRoute: PublicBusinessesIndexRoute,
+}
+
+const PublicRouteRouteWithChildren = PublicRouteRoute._addFileChildren(
+  PublicRouteRouteChildren,
 )
 
 interface AdminRouteChildren {
@@ -272,11 +398,28 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface CustomerRouteChildren {
+  CustomerMeRoute: typeof CustomerMeRoute
+  CustomerReviewsRoute: typeof CustomerReviewsRoute
+  CustomerBookBusinessIdServiceIdRoute: typeof CustomerBookBusinessIdServiceIdRoute
+}
+
+const CustomerRouteChildren: CustomerRouteChildren = {
+  CustomerMeRoute: CustomerMeRoute,
+  CustomerReviewsRoute: CustomerReviewsRoute,
+  CustomerBookBusinessIdServiceIdRoute: CustomerBookBusinessIdServiceIdRoute,
+}
+
+const CustomerRouteWithChildren = CustomerRoute._addFileChildren(
+  CustomerRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRouteRoute: AuthRouteRouteWithChildren,
+  PublicRouteRoute: PublicRouteRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
-  CustomerRoute: CustomerRoute,
+  CustomerRoute: CustomerRouteWithChildren,
   OwnerRoute: OwnerRoute,
 }
 export const routeTree = rootRouteImport
