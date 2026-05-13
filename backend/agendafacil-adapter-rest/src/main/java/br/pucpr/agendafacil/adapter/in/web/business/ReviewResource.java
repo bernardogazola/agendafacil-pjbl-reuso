@@ -34,8 +34,7 @@ import java.util.List;
  * Resource responsável pelos endpoints de avaliações.
  *
  * <p>Permite que clientes criem, consultem, atualizem e removam suas próprias
- * avaliações. Também permite que o dono consulte avaliações dos próprios
- * estabelecimentos.</p>
+ * avaliações.</p>
  */
 @Path("/api/v1")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -150,48 +149,6 @@ public class ReviewResource {
     )
     public List<ReviewResponse> listMine() {
         return reviewService.listMine(authenticatedUser.id());
-    }
-
-    /**
-     * Lista as avaliações de um estabelecimento do dono autenticado.
-     *
-     * @param businessId identificador do estabelecimento
-     * @return lista de avaliações relacionadas ao estabelecimento
-     */
-    @GET
-    @Path("/businesses/{businessId}/reviews")
-    @RolesAllowed("owner")
-    @Operation(
-            summary = "Lista avaliações do estabelecimento",
-            description = "Retorna as avaliações relacionadas aos agendamentos de um estabelecimento administrado pelo usuário autenticado."
-    )
-    @APIResponse(
-            responseCode = "200",
-            description = "Lista de avaliações",
-            content = @Content(schema = @Schema(
-                    type = SchemaType.ARRAY,
-                    implementation = ReviewResponse.class
-            ))
-    )
-    @APIResponse(
-            responseCode = "401",
-            description = "Usuário não autenticado",
-            content = @Content(schema = @Schema(implementation = ApiError.class))
-    )
-    @APIResponse(
-            responseCode = "403",
-            description = "Usuário não tem permissão para acessar avaliações deste estabelecimento",
-            content = @Content(schema = @Schema(implementation = ApiError.class))
-    )
-    @APIResponse(
-            responseCode = "404",
-            description = "Estabelecimento não encontrado",
-            content = @Content(schema = @Schema(implementation = ApiError.class))
-    )
-    public List<ReviewResponse> listForBusiness(
-            @Parameter(description = "Identificador do estabelecimento", example = "10", required = true)
-            @PathParam("businessId") Long businessId) {
-        return reviewService.listForBusiness(authenticatedUser.id(), businessId);
     }
 
     /**
