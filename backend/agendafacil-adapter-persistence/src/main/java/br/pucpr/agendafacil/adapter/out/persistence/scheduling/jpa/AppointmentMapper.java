@@ -18,9 +18,12 @@ import jakarta.persistence.EntityManager;
  * entidades JPA.</p>
  *
  * <p>Na conversão para domínio, cliente, estabelecimento e serviço são
- * preenchidos como objetos parciais com id. Isso evita carregar o grafo completo
- * quando o caso de uso precisa apenas das referências principais do
- * agendamento.</p>
+ * preenchidos como objetos parciais contendo id e nome de exibição. O nome é
+ * incluído porque o {@code AppointmentResponse} da camada de aplicação expõe
+ * {@code businessName}, {@code serviceName} e {@code customerName}; sem isso a
+ * resposta sairia com esses campos nulos. Os demais atributos das entidades
+ * relacionadas continuam sem ser carregados para evitar percorrer o grafo
+ * completo.</p>
  */
 public final class AppointmentMapper {
 
@@ -40,16 +43,19 @@ public final class AppointmentMapper {
         if (jpa.getCustomer() != null) {
             Customer cStub = new Customer();
             cStub.setId(jpa.getCustomer().getId());
+            cStub.setName(jpa.getCustomer().getName());
             a.setCustomer(cStub);
         }
         if (jpa.getBusiness() != null) {
             Business bStub = new Business();
             bStub.setId(jpa.getBusiness().getId());
+            bStub.setTradeName(jpa.getBusiness().getTradeName());
             a.setBusiness(bStub);
         }
         if (jpa.getOfferedService() != null) {
             OfferedService osStub = new OfferedService();
             osStub.setId(jpa.getOfferedService().getId());
+            osStub.setName(jpa.getOfferedService().getName());
             a.setOfferedService(osStub);
         }
 
