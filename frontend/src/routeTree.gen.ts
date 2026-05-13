@@ -15,7 +15,15 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as PublicRouteRouteImport } from './routes/_public/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OwnerIndexRouteImport } from './routes/owner/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as OwnerServicesRouteImport } from './routes/owner/services'
+import { Route as OwnerReviewsRouteImport } from './routes/owner/reviews'
+import { Route as OwnerReportsRouteImport } from './routes/owner/reports'
+import { Route as OwnerPromotionsRouteImport } from './routes/owner/promotions'
+import { Route as OwnerProfileRouteImport } from './routes/owner/profile'
+import { Route as OwnerHoursRouteImport } from './routes/owner/hours'
+import { Route as OwnerAgendaRouteImport } from './routes/owner/agenda'
 import { Route as CustomerReviewsRouteImport } from './routes/customer/reviews'
 import { Route as CustomerMeRouteImport } from './routes/customer/me'
 import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
@@ -55,10 +63,50 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OwnerIndexRoute = OwnerIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => OwnerRoute,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const OwnerServicesRoute = OwnerServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => OwnerRoute,
+} as any)
+const OwnerReviewsRoute = OwnerReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => OwnerRoute,
+} as any)
+const OwnerReportsRoute = OwnerReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => OwnerRoute,
+} as any)
+const OwnerPromotionsRoute = OwnerPromotionsRouteImport.update({
+  id: '/promotions',
+  path: '/promotions',
+  getParentRoute: () => OwnerRoute,
+} as any)
+const OwnerProfileRoute = OwnerProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => OwnerRoute,
+} as any)
+const OwnerHoursRoute = OwnerHoursRouteImport.update({
+  id: '/hours',
+  path: '/hours',
+  getParentRoute: () => OwnerRoute,
+} as any)
+const OwnerAgendaRoute = OwnerAgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
+  getParentRoute: () => OwnerRoute,
 } as any)
 const CustomerReviewsRoute = CustomerReviewsRouteImport.update({
   id: '/reviews',
@@ -117,7 +165,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/customer': typeof CustomerRouteWithChildren
-  '/owner': typeof OwnerRoute
+  '/owner': typeof OwnerRouteWithChildren
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
   '/admin/administrators': typeof AdminAdministratorsRoute
@@ -125,7 +173,15 @@ export interface FileRoutesByFullPath {
   '/admin/customers': typeof AdminCustomersRoute
   '/customer/me': typeof CustomerMeRoute
   '/customer/reviews': typeof CustomerReviewsRoute
+  '/owner/agenda': typeof OwnerAgendaRoute
+  '/owner/hours': typeof OwnerHoursRoute
+  '/owner/profile': typeof OwnerProfileRoute
+  '/owner/promotions': typeof OwnerPromotionsRoute
+  '/owner/reports': typeof OwnerReportsRoute
+  '/owner/reviews': typeof OwnerReviewsRoute
+  '/owner/services': typeof OwnerServicesRoute
   '/admin/': typeof AdminIndexRoute
+  '/owner/': typeof OwnerIndexRoute
   '/businesses/$businessId': typeof PublicBusinessesBusinessIdRoute
   '/businesses/': typeof PublicBusinessesIndexRoute
   '/customer/book/$businessId/$serviceId': typeof CustomerBookBusinessIdServiceIdRoute
@@ -133,7 +189,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/customer': typeof CustomerRouteWithChildren
-  '/owner': typeof OwnerRoute
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
   '/admin/administrators': typeof AdminAdministratorsRoute
@@ -141,7 +196,15 @@ export interface FileRoutesByTo {
   '/admin/customers': typeof AdminCustomersRoute
   '/customer/me': typeof CustomerMeRoute
   '/customer/reviews': typeof CustomerReviewsRoute
+  '/owner/agenda': typeof OwnerAgendaRoute
+  '/owner/hours': typeof OwnerHoursRoute
+  '/owner/profile': typeof OwnerProfileRoute
+  '/owner/promotions': typeof OwnerPromotionsRoute
+  '/owner/reports': typeof OwnerReportsRoute
+  '/owner/reviews': typeof OwnerReviewsRoute
+  '/owner/services': typeof OwnerServicesRoute
   '/admin': typeof AdminIndexRoute
+  '/owner': typeof OwnerIndexRoute
   '/businesses/$businessId': typeof PublicBusinessesBusinessIdRoute
   '/businesses': typeof PublicBusinessesIndexRoute
   '/customer/book/$businessId/$serviceId': typeof CustomerBookBusinessIdServiceIdRoute
@@ -153,7 +216,7 @@ export interface FileRoutesById {
   '/_public': typeof PublicRouteRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/customer': typeof CustomerRouteWithChildren
-  '/owner': typeof OwnerRoute
+  '/owner': typeof OwnerRouteWithChildren
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/signup': typeof AuthSignupRoute
   '/admin/administrators': typeof AdminAdministratorsRoute
@@ -161,7 +224,15 @@ export interface FileRoutesById {
   '/admin/customers': typeof AdminCustomersRoute
   '/customer/me': typeof CustomerMeRoute
   '/customer/reviews': typeof CustomerReviewsRoute
+  '/owner/agenda': typeof OwnerAgendaRoute
+  '/owner/hours': typeof OwnerHoursRoute
+  '/owner/profile': typeof OwnerProfileRoute
+  '/owner/promotions': typeof OwnerPromotionsRoute
+  '/owner/reports': typeof OwnerReportsRoute
+  '/owner/reviews': typeof OwnerReviewsRoute
+  '/owner/services': typeof OwnerServicesRoute
   '/admin/': typeof AdminIndexRoute
+  '/owner/': typeof OwnerIndexRoute
   '/_public/businesses/$businessId': typeof PublicBusinessesBusinessIdRoute
   '/_public/businesses/': typeof PublicBusinessesIndexRoute
   '/customer/book/$businessId/$serviceId': typeof CustomerBookBusinessIdServiceIdRoute
@@ -180,7 +251,15 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/customer/me'
     | '/customer/reviews'
+    | '/owner/agenda'
+    | '/owner/hours'
+    | '/owner/profile'
+    | '/owner/promotions'
+    | '/owner/reports'
+    | '/owner/reviews'
+    | '/owner/services'
     | '/admin/'
+    | '/owner/'
     | '/businesses/$businessId'
     | '/businesses/'
     | '/customer/book/$businessId/$serviceId'
@@ -188,7 +267,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/customer'
-    | '/owner'
     | '/login'
     | '/signup'
     | '/admin/administrators'
@@ -196,7 +274,15 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/customer/me'
     | '/customer/reviews'
+    | '/owner/agenda'
+    | '/owner/hours'
+    | '/owner/profile'
+    | '/owner/promotions'
+    | '/owner/reports'
+    | '/owner/reviews'
+    | '/owner/services'
     | '/admin'
+    | '/owner'
     | '/businesses/$businessId'
     | '/businesses'
     | '/customer/book/$businessId/$serviceId'
@@ -215,7 +301,15 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/customer/me'
     | '/customer/reviews'
+    | '/owner/agenda'
+    | '/owner/hours'
+    | '/owner/profile'
+    | '/owner/promotions'
+    | '/owner/reports'
+    | '/owner/reviews'
+    | '/owner/services'
     | '/admin/'
+    | '/owner/'
     | '/_public/businesses/$businessId'
     | '/_public/businesses/'
     | '/customer/book/$businessId/$serviceId'
@@ -227,7 +321,7 @@ export interface RootRouteChildren {
   PublicRouteRoute: typeof PublicRouteRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   CustomerRoute: typeof CustomerRouteWithChildren
-  OwnerRoute: typeof OwnerRoute
+  OwnerRoute: typeof OwnerRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -274,12 +368,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/owner/': {
+      id: '/owner/'
+      path: '/'
+      fullPath: '/owner/'
+      preLoaderRoute: typeof OwnerIndexRouteImport
+      parentRoute: typeof OwnerRoute
+    }
     '/admin/': {
       id: '/admin/'
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/owner/services': {
+      id: '/owner/services'
+      path: '/services'
+      fullPath: '/owner/services'
+      preLoaderRoute: typeof OwnerServicesRouteImport
+      parentRoute: typeof OwnerRoute
+    }
+    '/owner/reviews': {
+      id: '/owner/reviews'
+      path: '/reviews'
+      fullPath: '/owner/reviews'
+      preLoaderRoute: typeof OwnerReviewsRouteImport
+      parentRoute: typeof OwnerRoute
+    }
+    '/owner/reports': {
+      id: '/owner/reports'
+      path: '/reports'
+      fullPath: '/owner/reports'
+      preLoaderRoute: typeof OwnerReportsRouteImport
+      parentRoute: typeof OwnerRoute
+    }
+    '/owner/promotions': {
+      id: '/owner/promotions'
+      path: '/promotions'
+      fullPath: '/owner/promotions'
+      preLoaderRoute: typeof OwnerPromotionsRouteImport
+      parentRoute: typeof OwnerRoute
+    }
+    '/owner/profile': {
+      id: '/owner/profile'
+      path: '/profile'
+      fullPath: '/owner/profile'
+      preLoaderRoute: typeof OwnerProfileRouteImport
+      parentRoute: typeof OwnerRoute
+    }
+    '/owner/hours': {
+      id: '/owner/hours'
+      path: '/hours'
+      fullPath: '/owner/hours'
+      preLoaderRoute: typeof OwnerHoursRouteImport
+      parentRoute: typeof OwnerRoute
+    }
+    '/owner/agenda': {
+      id: '/owner/agenda'
+      path: '/agenda'
+      fullPath: '/owner/agenda'
+      preLoaderRoute: typeof OwnerAgendaRouteImport
+      parentRoute: typeof OwnerRoute
     }
     '/customer/reviews': {
       id: '/customer/reviews'
@@ -414,13 +564,37 @@ const CustomerRouteWithChildren = CustomerRoute._addFileChildren(
   CustomerRouteChildren,
 )
 
+interface OwnerRouteChildren {
+  OwnerAgendaRoute: typeof OwnerAgendaRoute
+  OwnerHoursRoute: typeof OwnerHoursRoute
+  OwnerProfileRoute: typeof OwnerProfileRoute
+  OwnerPromotionsRoute: typeof OwnerPromotionsRoute
+  OwnerReportsRoute: typeof OwnerReportsRoute
+  OwnerReviewsRoute: typeof OwnerReviewsRoute
+  OwnerServicesRoute: typeof OwnerServicesRoute
+  OwnerIndexRoute: typeof OwnerIndexRoute
+}
+
+const OwnerRouteChildren: OwnerRouteChildren = {
+  OwnerAgendaRoute: OwnerAgendaRoute,
+  OwnerHoursRoute: OwnerHoursRoute,
+  OwnerProfileRoute: OwnerProfileRoute,
+  OwnerPromotionsRoute: OwnerPromotionsRoute,
+  OwnerReportsRoute: OwnerReportsRoute,
+  OwnerReviewsRoute: OwnerReviewsRoute,
+  OwnerServicesRoute: OwnerServicesRoute,
+  OwnerIndexRoute: OwnerIndexRoute,
+}
+
+const OwnerRouteWithChildren = OwnerRoute._addFileChildren(OwnerRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRouteRoute: AuthRouteRouteWithChildren,
   PublicRouteRoute: PublicRouteRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   CustomerRoute: CustomerRouteWithChildren,
-  OwnerRoute: OwnerRoute,
+  OwnerRoute: OwnerRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

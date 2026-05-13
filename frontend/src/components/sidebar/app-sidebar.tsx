@@ -74,8 +74,18 @@ const NAV_BY_ROLE: Record<UserRole, NavItem[]> = {
 
 const SHORTCUTS_BY_ROLE: Record<UserRole, ShortcutItem[]> = {
 	owner: [
-		{ name: "Novo serviço", url: "/owner/services/new", icon: Scissors },
-		{ name: "Nova promoção", url: "/owner/promotions/new", icon: Tag },
+		{
+			name: "Novo serviço",
+			url: "/owner/services",
+			search: { create: true },
+			icon: Scissors,
+		},
+		{
+			name: "Nova promoção",
+			url: "/owner/promotions",
+			search: { create: true },
+			icon: Tag,
+		},
 	],
 	customer: [],
 	admin: [
