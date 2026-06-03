@@ -1,20 +1,20 @@
 package br.pucpr.agendafacil.app.bootstrap;
 
-import br.pucpr.agendafacil.adapter.out.persistence.business.BusinessHoursPanacheRepository;
-import br.pucpr.agendafacil.adapter.out.persistence.business.BusinessPanacheRepository;
-import br.pucpr.agendafacil.adapter.out.persistence.business.OfferedServicePanacheRepository;
-import br.pucpr.agendafacil.adapter.out.persistence.identity.AdministratorPanacheRepository;
-import br.pucpr.agendafacil.adapter.out.persistence.identity.CustomerPanacheRepository;
-import br.pucpr.agendafacil.adapter.out.persistence.identity.UserPanacheRepository;
 import br.pucpr.agendafacil.app.security.PasswordHasher;
 import br.pucpr.agendafacil.application.business.BusinessApplicationService;
 import br.pucpr.agendafacil.domain.business.Business;
 import br.pucpr.agendafacil.domain.business.BusinessCategory;
 import br.pucpr.agendafacil.domain.business.BusinessPlan;
 import br.pucpr.agendafacil.domain.business.OfferedService;
+import br.pucpr.agendafacil.domain.business.port.BusinessHoursRepository;
+import br.pucpr.agendafacil.domain.business.port.BusinessRepository;
+import br.pucpr.agendafacil.domain.business.port.OfferedServiceRepository;
 import br.pucpr.agendafacil.domain.identity.AccessLevel;
 import br.pucpr.agendafacil.domain.identity.Administrator;
 import br.pucpr.agendafacil.domain.identity.Customer;
+import br.pucpr.agendafacil.domain.identity.port.AdministratorRepository;
+import br.pucpr.agendafacil.domain.identity.port.CustomerRepository;
+import br.pucpr.agendafacil.domain.identity.port.UserRepository;
 import br.pucpr.agendafacil.domain.notification.NotificationChannel;
 import br.pucpr.agendafacil.domain.scheduling.cancellation.CancellationPolicyType;
 import br.pucpr.agendafacil.domain.scheduling.pricing.PricingPolicyType;
@@ -47,13 +47,14 @@ import java.util.EnumSet;
 public class DemoDataSeeder {
 
     private static final String DEMO_PASSWORD = "Demo@2026";
+    private static final String DEMO_SEED_MARKER_EMAIL = "admin@demo.com";
 
-    private final UserPanacheRepository userRepository;
-    private final AdministratorPanacheRepository administratorRepository;
-    private final CustomerPanacheRepository customerRepository;
-    private final BusinessPanacheRepository businessRepository;
-    private final OfferedServicePanacheRepository offeredServiceRepository;
-    private final BusinessHoursPanacheRepository businessHoursRepository;
+    private final UserRepository userRepository;
+    private final AdministratorRepository administratorRepository;
+    private final CustomerRepository customerRepository;
+    private final BusinessRepository businessRepository;
+    private final OfferedServiceRepository offeredServiceRepository;
+    private final BusinessHoursRepository businessHoursRepository;
     private final BusinessApplicationService businessService;
     private final PasswordHasher passwordHasher;
 
@@ -61,12 +62,12 @@ public class DemoDataSeeder {
     boolean enabled;
 
     @Inject
-    public DemoDataSeeder(UserPanacheRepository userRepository,
-                          AdministratorPanacheRepository administratorRepository,
-                          CustomerPanacheRepository customerRepository,
-                          BusinessPanacheRepository businessRepository,
-                          OfferedServicePanacheRepository offeredServiceRepository,
-                          BusinessHoursPanacheRepository businessHoursRepository,
+    public DemoDataSeeder(UserRepository userRepository,
+                          AdministratorRepository administratorRepository,
+                          CustomerRepository customerRepository,
+                          BusinessRepository businessRepository,
+                          OfferedServiceRepository offeredServiceRepository,
+                          BusinessHoursRepository businessHoursRepository,
                           BusinessApplicationService businessService,
                           PasswordHasher passwordHasher) {
         this.userRepository = userRepository;
@@ -93,7 +94,7 @@ public class DemoDataSeeder {
             Log.info("Seed demo: desabilitado por configuração, pulando.");
             return;
         }
-        if (userRepository.count() > 0) {
+        if (userRepository.existsByEmail(DEMO_SEED_MARKER_EMAIL)) {
             Log.info("Seed demo: banco já populado, pulando.");
             return;
         }
@@ -101,7 +102,7 @@ public class DemoDataSeeder {
         String encoded = passwordHasher.hash(DEMO_PASSWORD);
 
         Administrator superAdmin = new Administrator(
-                "Administrador da Plataforma", "admin@demo.com", encoded, AccessLevel.SUPER_ADMIN);
+                "Administrador da Plataforma", DEMO_SEED_MARKER_EMAIL, encoded, AccessLevel.SUPER_ADMIN);
         administratorRepository.persist(superAdmin);
 
         Business barbearia = seedBusiness(
@@ -154,10 +155,7 @@ public class DemoDataSeeder {
         seedCustomer("Maria Cliente", "cliente1@demo.com", encoded);
         seedCustomer("Pedro Cliente", "cliente2@demo.com", encoded);
 
-        Log.infof("Seed demo: %d users, %d businesses, %d services inseridos.",
-                userRepository.count(),
-                businessRepository.count(),
-                offeredServiceRepository.count());
+        Log.info("Seed demo: dados de demonstração inseridos com sucesso.");
     }
 
     /**

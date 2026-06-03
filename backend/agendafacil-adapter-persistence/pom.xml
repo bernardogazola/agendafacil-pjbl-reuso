@@ -11,6 +11,13 @@
     <artifactId>agendafacil-adapter-persistence</artifactId>
     <packaging>jar</packaging>
 
+    <properties>
+        <jooq.version>3.21.4</jooq.version>
+        <quarkus-jooq.version>2.1.0</quarkus-jooq.version>
+        <testcontainers.version>1.20.4</testcontainers.version>
+        <testcontainers-jooq-codegen.version>0.0.4</testcontainers-jooq-codegen.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>br.pucpr.agendafacil</groupId>
@@ -19,15 +26,32 @@
 
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-hibernate-orm-panache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
             <artifactId>quarkus-jdbc-postgresql</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-narayana-jta</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.quarkiverse.jooq</groupId>
+            <artifactId>quarkus-jooq</artifactId>
+            <version>${quarkus-jooq.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jooq</groupId>
+                    <artifactId>jooq</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq</artifactId>
+            <version>${jooq.version}</version>
         </dependency>
 
         <dependency>
@@ -47,6 +71,88 @@
             <plugin>
                 <groupId>io.smallrye</groupId>
                 <artifactId>jandex-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-jooq-codegen-maven-plugin</artifactId>
+                <version>${testcontainers-jooq-codegen.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.testcontainers</groupId>
+                        <artifactId>testcontainers</artifactId>
+                        <version>${testcontainers.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.testcontainers</groupId>
+                        <artifactId>postgresql</artifactId>
+                        <version>${testcontainers.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.testcontainers</groupId>
+                        <artifactId>jdbc</artifactId>
+                        <version>${testcontainers.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.testcontainers</groupId>
+                        <artifactId>database-commons</artifactId>
+                        <version>${testcontainers.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>com.github.docker-java</groupId>
+                        <artifactId>docker-java-api</artifactId>
+                        <version>3.4.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>com.github.docker-java</groupId>
+                        <artifactId>docker-java-transport-zerodep</artifactId>
+                        <version>3.4.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.jooq</groupId>
+                        <artifactId>jooq-codegen</artifactId>
+                        <version>${jooq.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>generate-jooq-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <database>
+                                <type>POSTGRES</type>
+                                <containerImage>postgres:16-alpine</containerImage>
+                            </database>
+                            <flyway>
+                                <locations>filesystem:${project.basedir}/src/main/resources/db/migration</locations>
+                            </flyway>
+                            <jooq>
+                                <generator>
+                                    <database>
+                                        <inputSchema>public</inputSchema>
+                                        <excludes>flyway_schema_history</excludes>
+                                    </database>
+                                    <target>
+                                        <packageName>br.pucpr.agendafacil.adapter.out.persistence.jooq.generated</packageName>
+                                        <directory>target/generated-sources/jooq</directory>
+                                    </target>
+                                    <generate>
+                                        <records>true</records>
+                                        <pojos>false</pojos>
+                                        <daos>false</daos>
+                                        <interfaces>false</interfaces>
+                                        <javaTimeTypes>true</javaTimeTypes>
+                                        <fluentSetters>true</fluentSetters>
+                                        <deprecated>false</deprecated>
+                                    </generate>
+                                </generator>
+                            </jooq>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
